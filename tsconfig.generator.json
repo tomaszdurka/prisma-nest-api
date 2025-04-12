@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/generator/**/*",
+    "src/bin/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/lib/**/*",
+    "src/examples/**/*"
+  ]
+}
