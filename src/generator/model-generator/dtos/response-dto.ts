@@ -133,7 +133,7 @@ export async function generateResponseDtoWithRelations(
       importManager.addImport(`./${model.name.toLowerCase()}-response.dto`, relatedDtoType);
     } else {
       // Use external import for other models
-      importManager.addImport(`../${relationType.toLowerCase()}`, relatedDtoType);
+      importManager.addImport(`../../${relationType.toLowerCase()}`, relatedDtoType);
     }
 
     // Add API property
