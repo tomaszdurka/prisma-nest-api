@@ -26,22 +26,30 @@ export async function generateIdDto(
   const usedValidators = new Set<string>(['IsNotEmpty']);
   const usedEnums = new Set<string>();
 
-  // Get all ID and unique fields
-  const idAndUniqueFields = model.fields.filter(field =>
-      field.isId || field.isUnique || (model.uniqueFields && model.uniqueFields.some(uniqueConstraint =>
-        uniqueConstraint.includes(field.name)
-      ))
-  );
+  // Get only primary key fields (either single @id field or composite @@id fields)
+  const primaryKeyFields = model.fields.filter(field => {
+    // Check for single-field primary key
+    if (field.isId) {
+      return true;
+    }
+    
+    // Check for composite primary key using @@id directive
+    if (model.primaryKey && model.primaryKey.fields.includes(field.name)) {
+      return true;
+    }
+    
+    return false;
+  });
 
-  if (idAndUniqueFields.length === 0) {
-    // If no ID/unique fields, just use 'id' if it exists
+  if (primaryKeyFields.length === 0) {
+    // If no primary key fields, just use 'id' if it exists
     const idField = model.fields.find(field => field.name === 'id');
     if (idField) {
-      idAndUniqueFields.push(idField);
+      primaryKeyFields.push(idField);
     }
   }
 
-  for (const field of idAndUniqueFields) {
+  for (const field of primaryKeyFields) {
     const typeScriptType = getTypeScriptType(field, enums);
 
     // Handle enum types

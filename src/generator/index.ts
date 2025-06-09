@@ -12,7 +12,7 @@ generatorHandler({
   onManifest() {
     return {
       version: '1.1.2',
-      defaultOutput: 'src/generated',
+      defaultOutput: 'src/generated', 
       prettyName: 'NestJS API Generator',
     };
   },
