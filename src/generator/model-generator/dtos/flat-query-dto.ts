@@ -13,7 +13,7 @@ export async function generateFlatQueryDto(
 ): Promise<void> {
   const className = `FlatQuery${model.name}Dto`;
   const fileName = `flat-query-${model.name.toLowerCase()}.dto.ts`;
-  const filePath = path.join(outputDir, 'dto', model.name.toLowerCase(), fileName);
+  const filePath = path.join(outputDir, 'dto', fileName);
 
   const importManager = new ImportManager();
   importManager.addImport('@nestjs/swagger', 'ApiPropertyOptional');

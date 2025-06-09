@@ -20,7 +20,7 @@ export async function generateCreateDto(
 ): Promise<void> {
   const className = `Create${model.name}Dto`;
   const fileName = `create-${model.name.toLowerCase()}.dto.ts`;
-  const filePath = path.join(outputDir, 'dto', model.name.toLowerCase(), fileName);
+  const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
   const importManager = new ImportManager();

@@ -23,26 +23,26 @@ export async function generateModels(options: GenerateModelsOptions): Promise<vo
   const enhancedModels = preprocessModels(models);
   
   // Create base directories
-  await fs.mkdir(path.join(outputDir, 'dto'), { recursive: true });
-  await fs.mkdir(path.join(outputDir, 'controllers'), { recursive: true });
-  await fs.mkdir(path.join(outputDir, 'services'), { recursive: true });
+  // await fs.mkdir(path.join(outputDir, 'dto'), { recursive: true });
+  // await fs.mkdir(path.join(outputDir, 'controllers'), { recursive: true });
+  // await fs.mkdir(path.join(outputDir, 'services'), { recursive: true });
   
   // Process each model and generate all required files
   for (const model of enhancedModels) {
     // Create model-specific directory for DTOs
-    const modelDtoDir = path.join(outputDir, 'dto', model.name.toLowerCase());
+    const modelDtoDir = path.join(outputDir, model.name.toLowerCase());
     await fs.mkdir(modelDtoDir, { recursive: true });
     
     // Generate all DTOs for this model
-    await generateCreateDto(model, outputDir, enums, prismaClientProvider);
-    await generateUpdateDto(model, outputDir, enums, prismaClientProvider);
-    await generateResponseDto(model, outputDir, enums, prismaClientProvider);
-    await generateIdDto(model, outputDir, enums, prismaClientProvider);
-    await generateFindManyDto(model, outputDir);
-    await generateFlatQueryDto(model, outputDir);
-    await generateFilterClass(model, outputDir);
+    await generateCreateDto(model, modelDtoDir, enums, prismaClientProvider);
+    await generateUpdateDto(model, modelDtoDir, enums, prismaClientProvider);
+    await generateResponseDto(model, modelDtoDir, enums, prismaClientProvider);
+    await generateIdDto(model, modelDtoDir, enums, prismaClientProvider);
+    await generateFindManyDto(model, modelDtoDir);
+    await generateFlatQueryDto(model, modelDtoDir);
+    await generateFilterClass(model, modelDtoDir);
     
     // Generate index file for this model's DTOs
-    await generateModelIndexFile(model, outputDir);
+    await generateModelIndexFile(model, modelDtoDir);
   }
 }

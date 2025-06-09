@@ -9,7 +9,7 @@ import { ImportManager } from '../utils/import-manager';
 export async function generateFindManyDto(model: EnhancedModel, outputDir: string): Promise<void> {
   const className = `FindMany${model.name}Dto`;
   const fileName = `find-many-${model.name.toLowerCase()}.dto.ts`;
-  const filePath = path.join(outputDir, 'dto', model.name.toLowerCase(), fileName);
+  const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
   const importManager = new ImportManager();

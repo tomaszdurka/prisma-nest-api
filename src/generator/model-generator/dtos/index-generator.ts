@@ -7,7 +7,7 @@ import { EnhancedModel } from '../utils/types';
  */
 export async function generateModelIndexFile(model: EnhancedModel, outputDir: string): Promise<void> {
   const modelName = model.name;
-  const indexFilePath = path.join(outputDir, 'dto', modelName.toLowerCase(), 'index.ts');
+  const indexFilePath = path.join(outputDir, 'dto', 'index.ts');
 
   let content = `export * from './create-${modelName.toLowerCase()}.dto';\n`;
   content += `export * from './update-${modelName.toLowerCase()}.dto';\n`;

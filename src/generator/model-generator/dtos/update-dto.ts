@@ -16,7 +16,7 @@ export async function generateUpdateDto(
 ): Promise<void> {
   const className = `Update${model.name}Dto`;
   const fileName = `update-${model.name.toLowerCase()}.dto.ts`;
-  const filePath = path.join(outputDir, 'dto', model.name.toLowerCase(), fileName);
+  const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
   const importManager = new ImportManager();

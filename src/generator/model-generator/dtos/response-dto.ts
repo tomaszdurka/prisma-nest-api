@@ -16,7 +16,7 @@ export async function generateResponseDto(
 ): Promise<void> {
   const className = `${model.name}ResponseDto`;
   const fileName = `${model.name.toLowerCase()}-response.dto.ts`;
-  const filePath = path.join(outputDir, 'dto', model.name.toLowerCase(), fileName);
+  const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
   const importManager = new ImportManager();
@@ -92,7 +92,7 @@ export async function generateResponseDtoWithRelations(
 ): Promise<void> {
   const className = `${model.name}ResponseWithRelationsDto`;
   const fileName = `${model.name.toLowerCase()}-response-with-relations.dto.ts`;
-  const filePath = path.join(outputDir, 'dto', model.name.toLowerCase(), fileName);
+  const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
   const importManager = new ImportManager();

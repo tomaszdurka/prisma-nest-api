@@ -17,7 +17,7 @@ export async function generateIdDto(
   const modelName = model.name;
   const dtoName = `${modelName}IdDto`;
   const fileName = `${modelName.toLowerCase()}-id.dto.ts`;
-  const filePath = path.join(outputDir, 'dto', modelName.toLowerCase(), fileName);
+  const filePath = path.join(outputDir, 'dto', fileName);
 
   const importManager = new ImportManager();
   importManager.addImport('@nestjs/swagger', 'ApiProperty');

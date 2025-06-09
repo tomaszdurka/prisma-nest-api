@@ -9,7 +9,7 @@ import { ImportManager } from '../utils/import-manager';
 export async function generateFilterClass(model: EnhancedModel, outputDir: string): Promise<void> {
   const className = `${model.name}Filter`;
   const fileName = `${model.name.toLowerCase()}.filter.ts`;
-  const filePath = path.join(outputDir, 'dto', model.name.toLowerCase(), fileName);
+  const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
   const importManager = new ImportManager();
