@@ -115,6 +115,41 @@ function toPrismaModelName(modelName: string): string {
 }
 
 /**
+ * Helper function to get route path parameters for model primary key
+ * For single primary key: ':id'
+ * For composite primary key: ':field1/:field2'
+ */
+function getRouteParamPath(model: DMMF.Model): string {
+  // Check if model has a composite primary key
+  if (model.primaryKey && model.primaryKey.fields.length > 1) {
+    return model.primaryKey.fields.map(field => `:${field}`).join('/');
+  }
+  
+  // Default to ':id' for single field primary keys
+  return ':id';
+}
+
+/**
+ * Helper function to generate proper where clause for Prisma queries
+ * @param model - The DMMF model
+ * @param paramName - The name of the parameter containing the ID values (usually 'params')
+ * @returns A string with the proper where clause code
+ */
+function getPrismaWhereClause(model: DMMF.Model, paramName: string): string {
+  // Check if model has a composite primary key
+  if (model.primaryKey && model.primaryKey.fields.length > 1) {
+    // Generate the composite key name based on Prisma's convention
+    const compositeKeyName = model.primaryKey.fields.join('_');
+    
+    // Return the object format with the composite key
+    return `{ ${compositeKeyName}: ${paramName} }`;
+  }
+  
+  // For single field primary keys, just use params directly
+  return paramName;
+}
+
+/**
  * Generate create endpoint
  */
 function generateCreateEndpoint(model: DMMF.Model): string {
@@ -139,14 +174,19 @@ function generateUpdateEndpoint(model: DMMF.Model): string {
   const modelName = model.name;
   const prismaModelName = toPrismaModelName(modelName);
 
-  let content = `  @Put(':id')\n`;
+  // Get route parameter path for this model's primary key
+  const routePath = getRouteParamPath(model);
+  // Get proper where clause format
+  const whereClause = getPrismaWhereClause(model, 'params');
+  
+  let content = `  @Put('${routePath}')\n`;
   content += `  @ApiOperation({ summary: 'Update a ${modelName} record', operationId: 'update${modelName}' })\n`;
   content += `  @ApiBody({ type: Update${modelName}Dto })\n`;
   content += `  @ApiResponse({ status: 200, description: 'Updated ${modelName} record', type: ${modelName}ResponseDto })\n`;
   content += `  @ApiResponse({ status: 404, description: '${modelName} record not found' })\n`;
   content += `  async update${modelName}(@Param() params: ${modelName}IdDto, @Body() data: Update${modelName}Dto) {\n`;
   content += `    try {\n`;
-  content += `      return await this.prisma.${prismaModelName}.update({ where: params, data });\n`;
+  content += `      return await this.prisma.${prismaModelName}.update({ where: ${whereClause}, data });\n`;
   content += `    } catch (error) {\n`;
   content += `      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {\n`;
   content += `        throw new NotFoundException('${modelName} record not found');\n`;
@@ -165,13 +205,18 @@ function generateFindEndpoint(model: DMMF.Model): string {
   const modelName = model.name;
   const prismaModelName = toPrismaModelName(modelName);
 
-  let content = `  @Get(':id')\n`;
+  // Get route parameter path for this model's primary key
+  const routePath = getRouteParamPath(model);
+  // Get proper where clause format
+  const whereClause = getPrismaWhereClause(model, 'params');
+
+  let content = `  @Get('${routePath}')\n`;
   content += `  @ApiOperation({ summary: 'Get a ${modelName} record by ID', operationId: 'get${modelName}' })\n`;
   content += `  @ApiResponse({ status: 200, description: '${modelName} record', type: ${modelName}ResponseDto })\n`;
   content += `  @ApiResponse({ status: 404, description: '${modelName} record not found' })\n`;
   content += `  async get${modelName}(@Param() params: ${modelName}IdDto) {\n`;
   content += `    try {\n`;
-  content += `      return await this.prisma.${prismaModelName}.findUniqueOrThrow({ where: params });\n`;
+  content += `      return await this.prisma.${prismaModelName}.findUniqueOrThrow({ where: ${whereClause} });\n`;
   content += `    } catch (error) {\n`;
   content += `      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {\n`;
   content += `        throw new NotFoundException('${modelName} record not found');\n`;
@@ -231,14 +276,19 @@ function generateDeleteEndpoint(model: DMMF.Model): string {
   const modelName = model.name;
   const prismaModelName = toPrismaModelName(modelName);
 
-  let content = `  @Delete(':id')\n`;
+  // Get route parameter path for this model's primary key
+  const routePath = getRouteParamPath(model);
+  // Get proper where clause format
+  const whereClause = getPrismaWhereClause(model, 'params');
+
+  let content = `  @Delete('${routePath}')\n`;
   content += `  @ApiOperation({ summary: 'Delete a ${modelName} record', operationId: 'delete${modelName}' })\n`;
   content += `  @HttpCode(HttpStatus.NO_CONTENT)\n`;
   content += `  @ApiResponse({ status: 204, description: '${modelName} record deleted' })\n`;
   content += `  @ApiResponse({ status: 404, description: '${modelName} record not found' })\n`;
   content += `  async delete${modelName}(@Param() params: ${modelName}IdDto) {\n`;
   content += `    try {\n`;
-  content += `      await this.prisma.${prismaModelName}.delete({ where: params });\n`;
+  content += `      await this.prisma.${prismaModelName}.delete({ where: ${whereClause} });\n`;
   content += `    } catch (error) {\n`;
   content += `      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {\n`;
   content += `        throw new NotFoundException('${modelName} record not found');\n`;
