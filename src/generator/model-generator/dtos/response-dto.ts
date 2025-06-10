@@ -4,6 +4,7 @@ import * as fs from 'fs/promises';
 import { EnhancedModel } from '../utils/types';
 import { ImportManager } from '../utils/import-manager';
 import { getTypeScriptType, isEnumField } from '../utils/helpers';
+import { toKebabCase } from '../../utils/string-formatter';
 
 /**
  * Generate Response DTO for a model
@@ -15,7 +16,7 @@ export async function generateResponseDto(
   prismaClientProvider: string
 ): Promise<void> {
   const className = `${model.name}ResponseDto`;
-  const fileName = `${model.name.toLowerCase()}-response.dto.ts`;
+  const fileName = `${toKebabCase(model.name)}-response.dto.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
@@ -91,13 +92,13 @@ export async function generateResponseDtoWithRelations(
   outputDir: string,
 ): Promise<void> {
   const className = `${model.name}ResponseWithRelationsDto`;
-  const fileName = `${model.name.toLowerCase()}-response-with-relations.dto.ts`;
+  const fileName = `${toKebabCase(model.name)}-response-with-relations.dto.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
   const importManager = new ImportManager();
   importManager.addImport('@nestjs/swagger', 'ApiProperty');
-  importManager.addImport(`./${model.name.toLowerCase()}-response.dto`, `${model.name}ResponseDto`);
+  importManager.addImport(`./${toKebabCase(model.name)}-response.dto`, `${model.name}ResponseDto`);
 
   // Check if the model has any Decimal fields
   const hasDecimalFields = model.fields.some(field => field.type === 'Decimal');
@@ -130,10 +131,10 @@ export async function generateResponseDtoWithRelations(
     // Check if the relation type is the same as the current model (self-reference)
     if (relationType === model.name) {
       // Use local import for self-references
-      importManager.addImport(`./${model.name.toLowerCase()}-response.dto`, relatedDtoType);
+      importManager.addImport(`./${toKebabCase(model.name)}-response.dto`, relatedDtoType);
     } else {
       // Use external import for other models
-      importManager.addImport(`../../${relationType.toLowerCase()}`, relatedDtoType);
+      importManager.addImport(`../../${toKebabCase(relationType)}`, relatedDtoType);
     }
 
     // Add API property

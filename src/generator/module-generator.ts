@@ -1,6 +1,7 @@
 import { DMMF } from '@prisma/generator-helper';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { toKebabCase } from './utils/string-formatter';
 
 interface GenerateModulesOptions {
   models: DMMF.Model[];
@@ -31,13 +32,13 @@ export async function generateModules(options: GenerateModulesOptions): Promise<
  */
 async function generateModelModule(model: DMMF.Model, outputDir: string): Promise<void> {
   const modelName = model.name;
-  const fileName = `${modelName.toLowerCase()}.module.ts`;
-  const filePath = path.join(outputDir, modelName.toLowerCase(), fileName);
+  const fileName = `${toKebabCase(modelName)}.module.ts`;
+  const filePath = path.join(outputDir, toKebabCase(modelName), fileName);
   
   const controllerName = `${modelName}Controller`;
   
   let content = `import { Module } from '@nestjs/common';\n`;
-  content += `import { ${controllerName} } from './${modelName.toLowerCase()}.controller';\n`;
+  content += `import { ${controllerName} } from './${toKebabCase(modelName)}.controller';\n`;
   content += `import { PrismaModule } from '../prisma/prisma.module';\n\n`;
   
   content += `/**\n`;
@@ -53,26 +54,18 @@ async function generateModelModule(model: DMMF.Model, outputDir: string): Promis
 }
 
 /**
- * Generate a root module that imports all model modules
- */
-/**
  * Generate an index file for a model that exports all relevant components
  */
 async function generateModelIndexFile(model: DMMF.Model, outputDir: string): Promise<void> {
   const modelName = model.name;
-  const fileName = 'index.ts';
-  const filePath = path.join(outputDir, modelName.toLowerCase(), fileName);
+  const indexPath = path.join(outputDir, toKebabCase(modelName), 'index.ts');
   
-  let content = `// Export all components for ${modelName} module
-`;
-  content += `export * from './${modelName.toLowerCase()}.controller';
-`;
-  content += `export * from './${modelName.toLowerCase()}.module';
-`;
-  content += `export * from './dto';
-`;
+  let content = `// Export all components for ${modelName} module\n`;
+  content += `export * from './${toKebabCase(modelName)}.controller';\n`;
+  content += `export * from './${toKebabCase(modelName)}.module';\n`;
+  content += `export * from './dto';\n`;
   
-  await fs.writeFile(filePath, content);
+  await fs.writeFile(indexPath, content);
 }
 
 /**
@@ -104,7 +97,7 @@ async function generateRootModule(models: DMMF.Model[], outputDir: string): Prom
   
   for (const model of models) {
     const modelName = model.name;
-    imports += `import { ${modelName}Module } from './${modelName.toLowerCase()}';\n`;
+    imports += `import { ${modelName}Module } from './${toKebabCase(modelName)}';\n`;
     modulesList += `    ${modelName}Module,\n`;
   }
   

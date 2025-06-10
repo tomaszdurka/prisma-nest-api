@@ -4,6 +4,7 @@ import * as fs from 'fs/promises';
 import { EnhancedModel } from '../utils/types';
 import { ImportManager } from '../utils/import-manager';
 import {getTypeScriptType, getValidatorForField, isEnumField} from '../utils/helpers';
+import { toKebabCase } from '../../utils/string-formatter';
 
 /**
  * Generate an ID DTO for a model (for primary and unique keys)
@@ -16,7 +17,7 @@ export async function generateIdDto(
 ): Promise<void> {
   const modelName = model.name;
   const dtoName = `${modelName}IdDto`;
-  const fileName = `${modelName.toLowerCase()}-id.dto.ts`;
+  const fileName = `${toKebabCase(modelName)}-id.dto.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   const importManager = new ImportManager();

@@ -8,6 +8,7 @@ import {
   shouldIncludeFieldInDto
 } from "../utils/helpers";
 import * as fs from 'fs/promises';
+import { toKebabCase } from '../../utils/string-formatter';
 
 /**
  * Generate Create DTO for a model
@@ -19,7 +20,7 @@ export async function generateCreateDto(
   prismaClientProvider: string
 ): Promise<void> {
   const className = `Create${model.name}Dto`;
-  const fileName = `create-${model.name.toLowerCase()}.dto.ts`;
+  const fileName = `create-${toKebabCase(model.name)}.dto.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports

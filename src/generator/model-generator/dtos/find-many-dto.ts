@@ -2,13 +2,14 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import { EnhancedModel } from '../utils/types';
 import { ImportManager } from '../utils/import-manager';
+import { toKebabCase } from '../../utils/string-formatter';
 
 /**
  * Generate FindMany DTO for a model
  */
 export async function generateFindManyDto(model: EnhancedModel, outputDir: string): Promise<void> {
   const className = `FindMany${model.name}Dto`;
-  const fileName = `find-many-${model.name.toLowerCase()}.dto.ts`;
+  const fileName = `find-many-${toKebabCase(model.name)}.dto.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
@@ -19,7 +20,7 @@ export async function generateFindManyDto(model: EnhancedModel, outputDir: strin
 
   // Direct implementation with proper validation decorators
 
-  importManager.addImport(`./${model.name.toLowerCase()}.filter`, [`${model.name}Filter`, `${model.name}WhereFilter`]);
+  importManager.addImport(`./${toKebabCase(model.name)}.filter`, [`${model.name}Filter`, `${model.name}WhereFilter`]);
 
   // Generate content with imports
   let content = importManager.generateImports();

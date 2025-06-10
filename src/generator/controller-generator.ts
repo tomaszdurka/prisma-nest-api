@@ -1,6 +1,7 @@
 import { DMMF } from '@prisma/generator-helper';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { toKebabCase } from './utils/string-formatter';
 
 interface GenerateControllersOptions {
   models: DMMF.Model[];
@@ -22,7 +23,7 @@ export async function generateControllers(options: GenerateControllersOptions): 
 
   // Generate controllers for each model
   for (const model of models) {
-    const modelOutputDir = path.join(outputDir, model.name.toLowerCase());
+    const modelOutputDir = path.join(outputDir, toKebabCase(model.name));
     await fs.mkdir(modelOutputDir, { recursive: true });
     await generateController(model, modelOutputDir);
   }
@@ -62,7 +63,7 @@ async function generatePrismaService(outputDir: string): Promise<void> {
 async function generateController(model: DMMF.Model, outputDir: string): Promise<void> {
   const modelName = model.name;
   const controllerName = `${modelName}Controller`;
-  const fileName = `${modelName.toLowerCase()}.controller.ts`;
+  const fileName = `${toKebabCase(modelName)}.controller.ts`;
   const filePath = path.join(outputDir, fileName);
 
   let content = `import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpCode, HttpStatus, NotFoundException } from '@nestjs/common';\n`;
@@ -79,7 +80,7 @@ async function generateController(model: DMMF.Model, outputDir: string): Promise
   content += `} from './dto';\n\n`;
 
   content += `@ApiTags('${modelName}')\n`;
-  content += `@Controller('${modelName.toLowerCase()}')\n`;
+  content += `@Controller('${toKebabCase(modelName)}')\n`;
   content += `export class ${controllerName} {\n`;
   content += `  constructor(private readonly prisma: PrismaService) {}\n\n`;
 

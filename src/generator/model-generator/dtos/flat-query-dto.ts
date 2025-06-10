@@ -3,6 +3,7 @@ import * as fs from 'fs/promises';
 import { EnhancedModel } from '../utils/types';
 import { ImportManager } from '../utils/import-manager';
 import { getOperatorsForFieldType, getTypeScriptTypeForOperator } from '../utils/helpers';
+import { toKebabCase } from '../../utils/string-formatter';
 
 /**
  * Generate a flattened query DTO for a model
@@ -12,7 +13,7 @@ export async function generateFlatQueryDto(
   outputDir: string,
 ): Promise<void> {
   const className = `FlatQuery${model.name}Dto`;
-  const fileName = `flat-query-${model.name.toLowerCase()}.dto.ts`;
+  const fileName = `flat-query-${toKebabCase(model.name)}.dto.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   const importManager = new ImportManager();

@@ -4,6 +4,7 @@ import * as fs from 'fs/promises';
 import { EnhancedModel } from '../utils/types';
 import { ImportManager } from '../utils/import-manager';
 import { getTypeScriptType, getValidatorForField, shouldIncludeFieldInDto, isEnumField } from '../utils/helpers';
+import { toKebabCase } from '../../utils/string-formatter';
 
 /**
  * Generate Update DTO for a model
@@ -15,7 +16,7 @@ export async function generateUpdateDto(
   prismaClientProvider: string
 ): Promise<void> {
   const className = `Update${model.name}Dto`;
-  const fileName = `update-${model.name.toLowerCase()}.dto.ts`;
+  const fileName = `update-${toKebabCase(model.name)}.dto.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports

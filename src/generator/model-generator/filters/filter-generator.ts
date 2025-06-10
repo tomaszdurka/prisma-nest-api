@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import { EnhancedModel } from '../utils/types';
 import { ImportManager } from '../utils/import-manager';
+import { toKebabCase } from '../../utils/string-formatter';
 
 /**
  * Generate Filter Classes for a model
@@ -12,7 +13,7 @@ import { ImportManager } from '../utils/import-manager';
 export async function generateFilterClass(model: EnhancedModel, outputDir: string): Promise<void> {
   const baseClassName = `${model.name}Filter`;
   const whereClassName = `${model.name}WhereFilter`;
-  const fileName = `${model.name.toLowerCase()}.filter.ts`;
+  const fileName = `${toKebabCase(model.name)}.filter.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
