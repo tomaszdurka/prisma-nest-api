@@ -11,7 +11,7 @@ import {generatePrismaModule} from "./prisma-module-generator";
 generatorHandler({
   onManifest() {
     return {
-      version: '1.1.5',
+      version: '1.1.6',
       defaultOutput: 'src/generated', 
       prettyName: 'NestJS API Generator',
     };
@@ -23,30 +23,6 @@ generatorHandler({
     // Use type assertion to handle the readonly types
     const models = options.dmmf.datamodel.models as unknown as DMMF.Model[];
     const enums = options.dmmf.datamodel.enums as unknown as DMMF.DatamodelEnum[];
-
-    // Find and print the Order model for debugging
-    const orderModel = models.find(model => model.name === 'Order');
-    if (orderModel) {
-      console.log('========= ORDER MODEL DMMF =========');
-      console.log('Fields:');
-      orderModel.fields.forEach(field => {
-        console.log(`Field: ${field.name}`);
-        console.log(`  Type: ${field.type}`);
-        console.log(`  Kind: ${field.kind}`);
-        console.log(`  isId: ${field.isId}`);
-        console.log(`  isRequired: ${field.isRequired}`);
-        console.log(`  hasDefaultValue: ${field.hasDefaultValue}`);
-        console.log(`  relationName: ${field.relationName || 'none'}`);
-        if (field.relationFromFields) {
-          console.log(`  relationFromFields: ${JSON.stringify(field.relationFromFields)}`);
-        }
-        if (field.relationToFields) {
-          console.log(`  relationToFields: ${JSON.stringify(field.relationToFields)}`);
-        }
-        console.log('---');
-      });
-      console.log('====================================');
-    }
 
     console.log(`Generating NestJS API in: ${outputDir}`);
 
