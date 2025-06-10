@@ -14,11 +14,10 @@ export async function generateFindManyDto(model: EnhancedModel, outputDir: strin
   // Use import manager to track imports
   const importManager = new ImportManager();
   importManager.addImport('@nestjs/swagger', 'ApiPropertyOptional');
-  importManager.addImport('class-transformer', ['Transform']);
+  importManager.addImport('class-transformer', ['Transform', 'Type']);
   importManager.addImport('class-validator', ['IsOptional', 'ValidateNested', 'IsInt', 'Min']);
 
-  // We're no longer extending FindManyRequest, we'll implement it directly
-  // importManager.addImport('prisma-nest-api', 'FindManyRequest');
+  // Direct implementation with proper validation decorators
 
   importManager.addImport(`./${model.name.toLowerCase()}.filter`, [`${model.name}Filter`, `${model.name}WhereFilter`]);
 
@@ -31,6 +30,7 @@ export async function generateFindManyDto(model: EnhancedModel, outputDir: strin
   // Where clause (filter)
   content += `  @ApiPropertyOptional({ type: ${model.name}WhereFilter })\n`;
   content += `  @IsOptional()\n`;
+  content += `  @Type(() => ${model.name}WhereFilter)\n`;
   content += `  @ValidateNested()\n`;
   content += `  where?: ${model.name}WhereFilter;\n\n`;
 
