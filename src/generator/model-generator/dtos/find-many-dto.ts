@@ -20,7 +20,7 @@ export async function generateFindManyDto(model: EnhancedModel, outputDir: strin
   // We're no longer extending FindManyRequest, we'll implement it directly
   // importManager.addImport('prisma-nest-api', 'FindManyRequest');
 
-  importManager.addImport(`./${model.name.toLowerCase()}.filter`, `${model.name}Filter`);
+  importManager.addImport(`./${model.name.toLowerCase()}.filter`, [`${model.name}Filter`, `${model.name}WhereFilter`]);
 
   // Generate content with imports
   let content = importManager.generateImports();
@@ -29,11 +29,10 @@ export async function generateFindManyDto(model: EnhancedModel, outputDir: strin
   content += `export class ${className} {\n`;
 
   // Where clause (filter)
-  content += `  @ApiPropertyOptional({ type: ${model.name}Filter })\n`;
+  content += `  @ApiPropertyOptional({ type: ${model.name}WhereFilter })\n`;
   content += `  @IsOptional()\n`;
   content += `  @ValidateNested()\n`;
-  content += `  @Transform(({ value }) => value)\n`;
-  content += `  where?: InstanceType<typeof ${model.name}Filter>;\n\n`;
+  content += `  where?: ${model.name}WhereFilter;\n\n`;
 
   // Flattened pagination parameters
   // Take parameter

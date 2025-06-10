@@ -1,6 +1,6 @@
 {
   "name": "prisma-nest-api",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "A library to help set up NestJS and Prisma projects",
   "main": "dist/generator/index.js",
   "types": "dist/generator/index.d.ts",

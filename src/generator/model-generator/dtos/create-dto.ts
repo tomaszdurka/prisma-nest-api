@@ -35,22 +35,8 @@ export async function generateCreateDto(
 
   let properties = '';
 
-  // Debug logging for Order model
-  if (model.name === 'Order') {
-    console.log('\n============ DEBUGGING CREATE DTO FIELD INCLUSION FOR ORDER ============');
-  }
-
   // Process all fields that should be included
   for (const field of model.fields) {
-
-    // Debug logging for Order model fields
-    if (model.name === 'Order') {
-      console.log(`Evaluating field: ${field.name}`);
-      console.log(field);
-      console.log(`Should include? ${shouldIncludeFieldInDto(field, model, false)}`);
-      console.log('---');
-    }
-
     if (!shouldIncludeFieldInDto(field, model, false)) {
       continue;
     }
