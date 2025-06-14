@@ -44,7 +44,7 @@ async function generateController(model: DMMF.Model, outputDir: string): Promise
   content += `  Update${modelName}Dto,\n`;
   content += `  FindMany${modelName}Dto,\n`;
   content += `  FlatQuery${modelName}Dto,\n`;
-  content += `  ${modelName}ResponseDto,\n`;
+  content += `  ${modelName}Dto,\n`;
   content += `  ${modelName}IdDto,\n`;
   content += `} from './dto';\n\n`;
 
@@ -129,7 +129,7 @@ function generateCreateEndpoint(model: DMMF.Model): string {
   let content = `  @Post()\n`;
   content += `  @ApiOperation({ summary: 'Create a new ${modelName} record', operationId: 'create${modelName}' })\n`;
   content += `  @ApiBody({ type: Create${modelName}Dto })\n`;
-  content += `  @ApiResponse({ status: 201, description: 'Created ${modelName} record', type: ${modelName}ResponseDto })\n`;
+  content += `  @ApiResponse({ status: 201, description: 'Created ${modelName} record', type: ${modelName}Dto })\n`;
   content += `  async create${modelName}(@Body() data: Create${modelName}Dto) {\n`;
   content += `    return this.prisma.${prismaModelName}.create({ data });\n`;
   content += `  }\n\n`;
@@ -152,7 +152,7 @@ function generateUpdateEndpoint(model: DMMF.Model): string {
   let content = `  @Put('${routePath}')\n`;
   content += `  @ApiOperation({ summary: 'Update a ${modelName} record', operationId: 'update${modelName}' })\n`;
   content += `  @ApiBody({ type: Update${modelName}Dto })\n`;
-  content += `  @ApiResponse({ status: 200, description: 'Updated ${modelName} record', type: ${modelName}ResponseDto })\n`;
+  content += `  @ApiResponse({ status: 200, description: 'Updated ${modelName} record', type: ${modelName}Dto })\n`;
   content += `  @ApiResponse({ status: 404, description: '${modelName} record not found' })\n`;
   content += `  async update${modelName}(@Param() params: ${modelName}IdDto, @Body() data: Update${modelName}Dto) {\n`;
   content += `    try {\n`;
@@ -182,7 +182,7 @@ function generateFindEndpoint(model: DMMF.Model): string {
 
   let content = `  @Get('${routePath}')\n`;
   content += `  @ApiOperation({ summary: 'Get a ${modelName} record by ID', operationId: 'get${modelName}' })\n`;
-  content += `  @ApiResponse({ status: 200, description: '${modelName} record', type: ${modelName}ResponseDto })\n`;
+  content += `  @ApiResponse({ status: 200, description: '${modelName} record', type: ${modelName}Dto })\n`;
   content += `  @ApiResponse({ status: 404, description: '${modelName} record not found' })\n`;
   content += `  async get${modelName}(@Param() params: ${modelName}IdDto) {\n`;
   content += `    try {\n`;
@@ -207,7 +207,7 @@ function generateFindManyEndpoint(model: DMMF.Model): string {
 
   let content = `  @Get()\n`;
   content += `  @ApiOperation({ summary: 'Get a list of ${modelName} records', operationId: 'get${modelName}List' })\n`;
-  content += `  @ApiResponse({ status: 200, description: 'List of ${modelName} records', type: [${modelName}ResponseDto] })\n`;
+  content += `  @ApiResponse({ status: 200, description: 'List of ${modelName} records', type: [${modelName}Dto] })\n`;
   content += `  async get${modelName}List(@Query() query: FlatQuery${modelName}Dto) {\n`;
   content += `    return this.prisma.${prismaModelName}.findMany(query.toPrismaQuery());\n`;
   content += `  }\n\n`;
@@ -225,7 +225,7 @@ function generateSearchEndpoint(model: DMMF.Model): string {
   let content = `  @Post('search')\n`;
   content += `  @ApiOperation({ summary: 'Search ${modelName} records', operationId: 'search${modelName}' })\n`;
   content += `  @ApiBody({ type: FindMany${modelName}Dto })\n`;
-  content += `  @ApiResponse({ status: 200, description: 'List of ${modelName} records', type: [${modelName}ResponseDto] })\n`;
+  content += `  @ApiResponse({ status: 200, description: 'List of ${modelName} records', type: [${modelName}Dto] })\n`;
   content += `  async search${modelName}(@Body() query: FindMany${modelName}Dto) {\n`;
   content += `    const { where, orderBy, take, skip } = query;\n`;
   content += `    return this.prisma.${prismaModelName}.findMany({\n`;
