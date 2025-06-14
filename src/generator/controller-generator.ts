@@ -18,43 +18,12 @@ export async function generateControllers(options: GenerateControllersOptions): 
   // Generate service directory for Prisma service
   await fs.mkdir(path.join(outputDir, 'prisma'), { recursive: true });
 
-  // Generate Prisma service
-  await generatePrismaService(outputDir);
-
   // Generate controllers for each model
   for (const model of models) {
     const modelOutputDir = path.join(outputDir, toKebabCase(model.name));
     await fs.mkdir(modelOutputDir, { recursive: true });
     await generateController(model, modelOutputDir);
   }
-}
-
-/**
- * Generate Prisma service for database access
- */
-async function generatePrismaService(outputDir: string): Promise<void> {
-  const fileName = 'prisma.service.ts';
-  const filePath = path.join(outputDir, 'prisma', fileName);
-
-  let content = `import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';\n`;
-  content += `import { PrismaClient } from '@prisma/client';\n\n`;
-
-  content += `@Injectable()\n`;
-  content += `export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {\n`;
-  content += `  constructor() {\n`;
-  content += `    super();\n`;
-  content += `  }\n\n`;
-
-  content += `  async onModuleInit() {\n`;
-  content += `    await this.$connect();\n`;
-  content += `  }\n\n`;
-
-  content += `  async onModuleDestroy() {\n`;
-  content += `    await this.$disconnect();\n`;
-  content += `  }\n`;
-  content += `}\n`;
-
-  await fs.writeFile(filePath, content);
 }
 
 /**

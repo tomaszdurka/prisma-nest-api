@@ -69,6 +69,8 @@ async function generatePrismaServiceFile(outputDir: string): Promise<void> {
   content += `    await this.$disconnect();\n`;
   content += `  }\n`;
   content += `}\n`;
-  
-  await fs.writeFile(filePath, content);
+
+  if (!(await fs.stat(filePath))) {
+    await fs.writeFile(filePath, content);
+  }
 }
