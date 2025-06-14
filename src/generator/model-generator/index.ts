@@ -6,7 +6,7 @@ import {preprocessModels} from './utils/model-processor';
 // Import all the DTO generators
 import {generateCreateDto} from './dtos/create-dto';
 import {generateUpdateDto} from './dtos/update-dto';
-import {generateResponseDto} from './dtos/response-dto';
+import {generateDto} from './dtos/response-dto';
 import {generateIdDto} from './dtos/id-dto';
 import {generateFindManyDto} from './dtos/find-many-dto';
 import {generateFlatQueryDto} from './dtos/flat-query-dto';
@@ -37,7 +37,7 @@ export async function generateModels(options: GenerateModelsOptions): Promise<vo
     // Generate all DTOs for this model
     await generateCreateDto(model, modelDtoDir, enums, prismaClientProvider);
     await generateUpdateDto(model, modelDtoDir, enums, prismaClientProvider);
-    await generateResponseDto(model, modelDtoDir, enums, prismaClientProvider);
+    await generateDto(model, modelDtoDir, enums, prismaClientProvider);
     await generateIdDto(model, modelDtoDir, enums, prismaClientProvider);
     await generateFindManyDto(model, modelDtoDir);
     await generateFlatQueryDto(model, modelDtoDir);

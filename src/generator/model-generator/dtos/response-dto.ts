@@ -9,14 +9,28 @@ import { toKebabCase } from '../../utils/string-formatter';
 /**
  * Generate Response DTO for a model
  */
-export async function generateResponseDto(
+export async function generateDto(
   model: EnhancedModel,
   outputDir: string,
   enums: DMMF.DatamodelEnum[] = [],
   prismaClientProvider: string
 ): Promise<void> {
-  const className = `${model.name}ResponseDto`;
-  const fileName = `${toKebabCase(model.name)}-response.dto.ts`;
+  // Generate both standard response DTO and list response DTO
+  await generateModelDto(model, outputDir, enums, prismaClientProvider);
+  await generateListDto(model, outputDir);
+}
+
+/**
+ * Generate the standard Response DTO for a model
+ */
+async function generateModelDto(
+  model: EnhancedModel,
+  outputDir: string,
+  enums: DMMF.DatamodelEnum[] = [],
+  prismaClientProvider: string
+): Promise<void> {
+  const className = `${model.name}Dto`;
+  const fileName = `${toKebabCase(model.name)}.dto.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
@@ -80,25 +94,67 @@ export async function generateResponseDto(
   await fs.writeFile(filePath, content);
 
   // Also generate response DTO with relations
-  await generateResponseDtoWithRelations(model, outputDir);
+  await generateDtoWithRelations(model, outputDir);
+}
+
+/**
+ * Generate List Response DTO for a model (for paginated responses)
+ */
+async function generateListDto(
+  model: EnhancedModel,
+  outputDir: string,
+): Promise<void> {
+  const className = `${model.name}ListDto`;
+  const fileName = `${toKebabCase(model.name)}-list.dto.ts`;
+  const filePath = path.join(outputDir, 'dto', fileName);
+
+  // Use import manager to track imports
+  const importManager = new ImportManager();
+  importManager.addImport('@nestjs/swagger', 'ApiProperty');
+  importManager.addImport('class-validator', 'IsArray');
+  importManager.addImport('class-validator', 'IsInt');
+  importManager.addImport(`./${toKebabCase(model.name)}.dto`, `${model.name}Dto`);
+
+  let content = importManager.generateImports();
+  content += `export class ${className} {\n`;
+  
+  // Add items array property
+  content += `  @ApiProperty({\n`;
+  content += `    isArray: true,\n`;
+  content += `    type: ${model.name}Dto\n`;
+  content += `  })\n`;
+  content += `  @IsArray()\n`;
+  content += `  items!: ${model.name}Dto[];\n\n`;
+  
+  // Add total count property
+  content += `  @ApiProperty({\n`;
+  content += `    type: 'integer'\n`;
+  content += `  })\n`;
+  content += `  @IsInt()\n`;
+  content += `  total!: number;\n`;
+  
+  content += `}\n`;
+
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, content);
 }
 
 
 /**
  * Generate Response DTO with relations for a model
  */
-export async function generateResponseDtoWithRelations(
+export async function generateDtoWithRelations(
   model: EnhancedModel,
   outputDir: string,
 ): Promise<void> {
-  const className = `${model.name}ResponseWithRelationsDto`;
-  const fileName = `${toKebabCase(model.name)}-response-with-relations.dto.ts`;
+  const className = `${model.name}WithRelationsDto`;
+  const fileName = `${toKebabCase(model.name)}-with-relations.dto.ts`;
   const filePath = path.join(outputDir, 'dto', fileName);
 
   // Use import manager to track imports
   const importManager = new ImportManager();
   importManager.addImport('@nestjs/swagger', 'ApiProperty');
-  importManager.addImport(`./${toKebabCase(model.name)}-response.dto`, `${model.name}ResponseDto`);
+  importManager.addImport(`./${toKebabCase(model.name)}.dto`, `${model.name}Dto`);
 
   // Check if the model has any Decimal fields
   const hasDecimalFields = model.fields.some(field => field.type === 'Decimal');
@@ -126,12 +182,12 @@ export async function generateResponseDtoWithRelations(
     usedRelations.add(relationType);
 
     // Set up the type string
-    const relatedDtoType = `${relationType}ResponseDto`;
+    const relatedDtoType = `${relationType}Dto`;
 
     // Check if the relation type is the same as the current model (self-reference)
     if (relationType === model.name) {
       // Use local import for self-references
-      importManager.addImport(`./${toKebabCase(model.name)}-response.dto`, relatedDtoType);
+      importManager.addImport(`./${toKebabCase(model.name)}.dto`, relatedDtoType);
     } else {
       // Use external import for other models
       importManager.addImport(`../../${toKebabCase(relationType)}`, relatedDtoType);
@@ -146,7 +202,7 @@ export async function generateResponseDtoWithRelations(
 
   // Generate content with imports
   let content = importManager.generateImports();
-  content += `export class ${className} extends ${model.name}ResponseDto {\n`;
+  content += `export class ${className} extends ${model.name}Dto {\n`;
   content += properties;
   content += '}\n';
 
