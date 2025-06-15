@@ -18,20 +18,21 @@ export async function generateFlatQueryDto(
 
   const importManager = new ImportManager();
   importManager.addImport('@nestjs/swagger', 'ApiPropertyOptional');
-  importManager.addImport('class-validator', ['IsOptional', 'IsString', 'IsInt', 'IsNumber', 'IsBoolean', 'IsDate', 'Min']);
+  importManager.addImport('class-validator', ['IsOptional', 'IsString', 'IsInt', 'IsNumber', 'IsBoolean', 'IsDate', 'Min', 'Max']);
   importManager.addImport('class-transformer', ['Transform', 'Type']);
 
   let properties = '';
 
   // Add standard pagination parameters
-  properties += `  @ApiPropertyOptional({ description: 'Number of records to take', default: 10 })\n`;
+  properties += `  @ApiPropertyOptional({ description: 'Number of records to take', type: String })\n`;
   properties += `  @IsOptional()\n`;
   properties += `  @IsInt()\n`;
   properties += `  @Min(1)\n`;
+  properties += `  @Max(100)\n`;
   properties += `  @Type(() => Number)\n`;
-  properties += `  take = 10;\n\n`;
+  properties += `  take = 25;\n\n`;
 
-  properties += `  @ApiPropertyOptional({ description: 'Number of records to skip', default: 0 })\n`;
+  properties += `  @ApiPropertyOptional({ description: 'Number of records to skip', type: String })\n`;
   properties += `  @IsOptional()\n`;
   properties += `  @IsInt()\n`;
   properties += `  @Min(0)\n`;
@@ -82,8 +83,6 @@ export async function generateFlatQueryDto(
       properties += `  ${paramName}?: ${getTypeScriptTypeForOperator(field.type)};\n\n`;
     }
   }
-
-  importManager.addImport('@prisma/client', ['Prisma']);
 
   // Add transformation method to convert flat query to Prisma structure
   let transformMethod = `
