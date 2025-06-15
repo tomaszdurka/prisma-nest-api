@@ -11,7 +11,7 @@ import {generatePrismaModule} from "./prisma-module-generator";
 generatorHandler({
   onManifest() {
     return {
-      version: '1.3.2',
+      version: '1.3.3',
       defaultOutput: 'src/generated', 
       prettyName: 'NestJS API Generator',
     };

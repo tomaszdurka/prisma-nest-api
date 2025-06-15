@@ -1,9 +1,9 @@
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { EnhancedModel } from '../utils/types';
-import { ImportManager } from '../utils/import-manager';
-import { getOperatorsForFieldType, getTypeScriptTypeForOperator } from '../utils/helpers';
-import { toKebabCase } from '../../utils/string-formatter';
+import {EnhancedModel} from '../utils/types';
+import {ImportManager} from '../utils/import-manager';
+import {getOperatorsForFieldType, getTypeScriptTypeForOperator} from '../utils/helpers';
+import {toKebabCase} from '../../utils/string-formatter';
 
 /**
  * Generate a flattened query DTO for a model
@@ -48,7 +48,7 @@ export async function generateFlatQueryDto(
 
     if (isIdField) {
       // ID fields only get equals operator regardless of type
-      operators = [{ name: 'equals', description: 'equals' }];
+      operators = [{name: 'equals', description: 'equals'}];
     } else {
       operators = getOperatorsForFieldType(field.type);
     }
@@ -83,12 +83,14 @@ export async function generateFlatQueryDto(
     }
   }
 
+  importManager.addImport('@prisma/client', ['Prisma']);
+
   // Add transformation method to convert flat query to Prisma structure
   let transformMethod = `
   /**
    * Transform flat query parameters to Prisma query structure
    */
-  toPrismaQuery() {
+  toQuery() {
     const result: any = {
       take: this.take,
       skip: this.skip,
@@ -138,6 +140,6 @@ export async function generateFlatQueryDto(
   content += transformMethod;
   content += '}\n';
 
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.mkdir(path.dirname(filePath), {recursive: true});
   await fs.writeFile(filePath, content);
 }

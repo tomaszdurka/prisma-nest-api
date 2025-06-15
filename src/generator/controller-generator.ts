@@ -44,6 +44,7 @@ async function generateController(model: DMMF.Model, outputDir: string): Promise
   content += `  Update${modelName}Dto,\n`;
   content += `  FindMany${modelName}Dto,\n`;
   content += `  FlatQuery${modelName}Dto,\n`;
+  content += `  ${modelName}ListDto,\n`;
   content += `  ${modelName}Dto,\n`;
   content += `  ${modelName}IdDto,\n`;
   content += `} from './dto';\n\n`;
@@ -53,12 +54,6 @@ async function generateController(model: DMMF.Model, outputDir: string): Promise
   content += `export class ${controllerName} {\n`;
   content += `  constructor(private readonly prisma: PrismaService) {}\n\n`;
 
-  // Create endpoint
-  content += generateCreateEndpoint(model);
-
-  // Update endpoint
-  content += generateUpdateEndpoint(model);
-
   // Find endpoint
   content += generateFindEndpoint(model);
 
@@ -67,6 +62,12 @@ async function generateController(model: DMMF.Model, outputDir: string): Promise
 
   // Search endpoint
   content += generateSearchEndpoint(model);
+
+  // Create endpoint
+  content += generateCreateEndpoint(model);
+
+  // Update endpoint
+  content += generateUpdateEndpoint(model);
 
   // Delete endpoint
   content += generateDeleteEndpoint(model);
@@ -207,9 +208,15 @@ function generateFindManyEndpoint(model: DMMF.Model): string {
 
   let content = `  @Get()\n`;
   content += `  @ApiOperation({ summary: 'Get a list of ${modelName} records', operationId: 'get${modelName}List' })\n`;
-  content += `  @ApiResponse({ status: 200, description: 'List of ${modelName} records', type: [${modelName}Dto] })\n`;
-  content += `  async get${modelName}List(@Query() query: FlatQuery${modelName}Dto) {\n`;
-  content += `    return this.prisma.${prismaModelName}.findMany(query.toPrismaQuery());\n`;
+  content += `  @ApiResponse({ status: 200, description: 'List of ${modelName} records', type: ${modelName}ListDto })\n`;
+  content += `  async get${modelName}List(@Query() flatQuery: FlatQuery${modelName}Dto) {\n`;
+  content += `    const query = flatQuery.toQuery();\n`;
+  content += `    const {cursor, skip, take, ...countQuery} = query;\n`;
+  content += `    const [items, total] = await Promise.all([\n`;
+  content += `      this.prisma.${prismaModelName}.findMany(query),\n`;
+  content += `      this.prisma.${prismaModelName}.count(countQuery),\n`;
+  content += `    ])\n`;
+  content += `    return {items, total}\n`;
   content += `  }\n\n`;
 
   return content;
@@ -225,15 +232,14 @@ function generateSearchEndpoint(model: DMMF.Model): string {
   let content = `  @Post('search')\n`;
   content += `  @ApiOperation({ summary: 'Search ${modelName} records', operationId: 'search${modelName}' })\n`;
   content += `  @ApiBody({ type: FindMany${modelName}Dto })\n`;
-  content += `  @ApiResponse({ status: 200, description: 'List of ${modelName} records', type: [${modelName}Dto] })\n`;
+  content += `  @ApiResponse({ status: 200, description: 'List of ${modelName} records', type: ${modelName}ListDto })\n`;
   content += `  async search${modelName}(@Body() query: FindMany${modelName}Dto) {\n`;
-  content += `    const { where, orderBy, take, skip } = query;\n`;
-  content += `    return this.prisma.${prismaModelName}.findMany({\n`;
-  content += `      where,\n`;
-  content += `      orderBy,\n`;
-  content += `      take,\n`;
-  content += `      skip,\n`;
-  content += `    });\n`;
+  content += `    const {cursor, skip,take, ...countQuery} = query;\n`;
+  content += `    const [items, total] = await Promise.all([\n`;
+  content += `      this.prisma.${prismaModelName}.findMany(query),\n`;
+  content += `      this.prisma.${prismaModelName}.count(countQuery),\n`;
+  content += `    ])\n`;
+  content += `    return {items, total}\n`;
   content += `  }\n\n`;
 
   return content;

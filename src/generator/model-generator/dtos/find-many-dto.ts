@@ -20,7 +20,8 @@ export async function generateFindManyDto(model: EnhancedModel, outputDir: strin
 
   // Direct implementation with proper validation decorators
 
-  importManager.addImport(`./${toKebabCase(model.name)}.filter`, [`${model.name}Filter`, `${model.name}WhereFilter`]);
+  importManager.addImport(`./${toKebabCase(model.name)}.filter`, [`${model.name}WhereFilter`]);
+  importManager.addImport(`./${toKebabCase(model.name)}-id.dto`, [`${model.name}IdDto`]);
 
   // Generate content with imports
   let content = importManager.generateImports();
@@ -55,7 +56,7 @@ export async function generateFindManyDto(model: EnhancedModel, outputDir: strin
   // Cursor parameter
   content += `  @ApiPropertyOptional({ description: 'Record to start from' })\n`;
   content += `  @IsOptional()\n`;
-  content += `  cursor?: Record<string, any>;\n\n`;
+  content += `  cursor?: ${model.name}IdDto;\n\n`;
 
   // OrderBy parameter
   content += `  @ApiPropertyOptional({ description: 'Ordering of results' })\n`;
