@@ -3,6 +3,7 @@
 import {generatorHandler, GeneratorOptions, DMMF} from '@prisma/generator-helper';
 import {generateModels} from './model-generator';
 import {generateControllers} from './controller-generator';
+import {generateServices} from './service-generator';
 import {copyUtilities} from './utils-copier';
 import {generateModules} from "./module-generator";
 import {generatePrismaModule} from "./prisma-module-generator";
@@ -11,7 +12,7 @@ import {generatePrismaModule} from "./prisma-module-generator";
 generatorHandler({
   onManifest() {
     return {
-      version: '1.3.4',
+      version: '1.4.0',
       defaultOutput: 'src/generated', 
       prettyName: 'NestJS API Generator',
     };
@@ -29,7 +30,7 @@ generatorHandler({
     // Copy utility files from the library to the output directory
     // This ensures the generated code doesn't have runtime dependencies on the library
     await copyUtilities(outputDir);
-    
+
     // Generate Prisma module with Prisma service
     await generatePrismaModule({
       outputDir,
@@ -40,6 +41,12 @@ generatorHandler({
       models,
       outputDir,
       enums,
+    });
+
+    // Generate services for CRUD operations
+    await generateServices({
+      models,
+      outputDir,
     });
 
     // Generate controllers for CRUD operations
