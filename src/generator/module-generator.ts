@@ -23,6 +23,9 @@ export async function generateModules(options: GenerateModulesOptions): Promise<
   // Generate index file for prisma module
   await generatePrismaIndexFile(outputDir);
 
+  // Generate index file for system-context module
+  await generateSystemContextIndexFile(outputDir);
+
   // Generate root module that imports all model modules
   await generateRootModule(models, outputDir);
 }
@@ -41,7 +44,8 @@ async function generateModelModule(model: DMMF.Model, outputDir: string): Promis
   let content = `import { Module } from '@nestjs/common';\n`;
   content += `import { ${controllerName} } from './${toKebabCase(modelName)}.controller';\n`;
   content += `import { ${serviceName} } from './${toKebabCase(modelName)}.service';\n`;
-  content += `import { PrismaModule } from '../prisma/prisma.module';\n\n`;
+  content += `import { PrismaModule } from '../prisma/prisma.module';\n`;
+  content += `import { SystemContextModule } from '../system-context/system-context.module';\n\n`;
 
   content += `/**\n`;
   content += ` * NestJS module for ${modelName} entity\n`;
@@ -49,7 +53,7 @@ async function generateModelModule(model: DMMF.Model, outputDir: string): Promis
   content += `@Module({\n`;
   content += `  controllers: [${controllerName}],\n`;
   content += `  providers: [${serviceName}],\n`;
-  content += `  imports: [PrismaModule],\n`;
+  content += `  imports: [PrismaModule, SystemContextModule],\n`;
   content += `  exports: [${serviceName}],\n`;
   content += `})\n`;
   content += `export class ${modelName}Module {}\n`;
@@ -91,6 +95,23 @@ async function generatePrismaIndexFile(outputDir: string): Promise<void> {
 }
 
 /**
+ * Generate an index file for the SystemContext module
+ */
+async function generateSystemContextIndexFile(outputDir: string): Promise<void> {
+  const fileName = 'index.ts';
+  const filePath = path.join(outputDir, 'system-context', fileName);
+
+  let content = `// Export all components from SystemContext module
+`;
+  content += `export * from './system-context.module';
+`;
+  content += `export * from './system-context.service';
+`;
+
+  await fs.writeFile(filePath, content);
+}
+
+/**
  * Generate a root module that imports all model modules
  */
 async function generateRootModule(models: DMMF.Model[], outputDir: string): Promise<void> {
@@ -108,6 +129,7 @@ async function generateRootModule(models: DMMF.Model[], outputDir: string): Prom
 
   let content = `import { Module } from '@nestjs/common';\n`;
   content += `import { PrismaModule } from './prisma';\n`;
+  content += `import { SystemContextModule } from './system-context/system-context.module';\n`;
   content += imports;
   content += `\n/**\n`;
   content += ` * Root module that imports all model modules\n`;
@@ -115,9 +137,11 @@ async function generateRootModule(models: DMMF.Model[], outputDir: string): Prom
   content += `@Module({\n`;
   content += `  imports: [\n`;
   content += `    PrismaModule,\n`;
+  content += `    SystemContextModule,\n`;
   content += modulesList;
   content += `  ],\n`;
   content += `  exports: [\n`;
+  content += `    SystemContextModule,\n`;
   content += modulesList;
   content += `  ],\n`;
   content += `})\n`;

@@ -5,6 +5,7 @@ export interface GenerateModelsOptions {
   outputDir: string;
   enums?: DMMF.DatamodelEnum[];
   prismaClientProvider?: string;
+  systemFields?: string[];
 }
 
 export interface EnhancedModel extends DMMF.Model {

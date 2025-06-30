@@ -20,7 +20,7 @@ import {toKebabCase} from "../utils/string-formatter";
  * Generate model DTOs for various operations (create, update, find, etc)
  */
 export async function generateModels(options: GenerateModelsOptions): Promise<void> {
-  const {models, outputDir, enums = [], prismaClientProvider = '@prisma/client'} = options;
+  const {models, outputDir, enums = [], prismaClientProvider = '@prisma/client', systemFields = []} = options;
   const enhancedModels = preprocessModels(models);
 
   // Create base directories
@@ -35,13 +35,13 @@ export async function generateModels(options: GenerateModelsOptions): Promise<vo
     await fs.mkdir(modelDtoDir, {recursive: true});
 
     // Generate all DTOs for this model
-    await generateCreateDto(model, modelDtoDir, enums, prismaClientProvider);
-    await generateUpdateDto(model, modelDtoDir, enums, prismaClientProvider);
+    await generateCreateDto(model, modelDtoDir, enums, prismaClientProvider, systemFields);
+    await generateUpdateDto(model, modelDtoDir, enums, prismaClientProvider, systemFields);
     await generateDto(model, modelDtoDir, enums, prismaClientProvider);
-    await generateIdDto(model, modelDtoDir, enums, prismaClientProvider);
+    await generateIdDto(model, modelDtoDir, enums, prismaClientProvider, systemFields);
     await generateFindManyDto(model, modelDtoDir);
     await generateFlatQueryDto(model, modelDtoDir);
-    await generateFilterClass(model, modelDtoDir);
+    await generateFilterClass(model, modelDtoDir, systemFields);
 
     // Generate index file for this model's DTOs
     await generateModelIndexFile(model, modelDtoDir);

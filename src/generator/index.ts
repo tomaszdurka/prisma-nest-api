@@ -7,12 +7,13 @@ import {generateServices} from './service-generator';
 import {copyUtilities} from './utils-copier';
 import {generateModules} from "./module-generator";
 import {generatePrismaModule} from "./prisma-module-generator";
+import {generateSystemContext} from "./system-context-generator";
 
 // Main generator handler
 generatorHandler({
   onManifest() {
     return {
-      version: '1.4.0',
+      version: '1.5.0',
       defaultOutput: 'src/generated', 
       prettyName: 'NestJS API Generator',
     };
@@ -20,6 +21,13 @@ generatorHandler({
   async onGenerate(options: GeneratorOptions) {
     // Get the output directory, defaulting to src/generated if not specified
     const outputDir = options.generator.output?.value || 'src/generated';
+
+    // Get systemFields option, defaulting to empty array if not specified
+    const systemFields = options.generator.config.systemFields
+      ? (Array.isArray(options.generator.config.systemFields)
+          ? options.generator.config.systemFields
+          : [options.generator.config.systemFields])
+      : [];
 
     // Use type assertion to handle the readonly types
     const models = options.dmmf.datamodel.models as unknown as DMMF.Model[];
@@ -36,17 +44,25 @@ generatorHandler({
       outputDir,
     });
 
+    // Generate SystemContext service and module
+    await generateSystemContext({
+      outputDir,
+      systemFields,
+    });
+
     // Generate model DTOs for create, update, findUnique, findMany operations
     await generateModels({
       models,
       outputDir,
       enums,
+      systemFields,
     });
 
     // Generate services for CRUD operations
     await generateServices({
       models,
       outputDir,
+      systemFields,
     });
 
     // Generate controllers for CRUD operations

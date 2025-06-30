@@ -10,10 +10,10 @@ interface GeneratePrismaModuleOptions {
  */
 export async function generatePrismaModule(options: GeneratePrismaModuleOptions): Promise<void> {
   const { outputDir } = options;
-  
+
   // Generate Prisma module
   await generatePrismaModuleFile(outputDir);
-  
+
   // Generate updated Prisma service with proper imports/exports
   await generatePrismaServiceFile(outputDir);
 }
@@ -28,7 +28,7 @@ async function generatePrismaModuleFile(outputDir: string): Promise<void> {
 
   let content = `import { Module, Global } from '@nestjs/common';\n`;
   content += `import { PrismaService } from './prisma.service';\n\n`;
-  
+
   content += `/**\n`;
   content += ` * Global Prisma module that provides PrismaService throughout the application\n`;
   content += ` */\n`;
@@ -38,7 +38,7 @@ async function generatePrismaModuleFile(outputDir: string): Promise<void> {
   content += `  exports: [PrismaService],\n`;
   content += `})\n`;
   content += `export class PrismaModule {}\n`;
-  
+
   await fs.writeFile(filePath, content);
 }
 
@@ -48,10 +48,10 @@ async function generatePrismaModuleFile(outputDir: string): Promise<void> {
 async function generatePrismaServiceFile(outputDir: string): Promise<void> {
   const fileName = 'prisma.service.ts';
   const filePath = path.join(outputDir, 'prisma', fileName);
-  
+
   let content = `import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';\n`;
   content += `import { PrismaClient } from '@prisma/client';\n\n`;
-  
+
   content += `/**\n`;
   content += ` * Injectable Prisma service that handles database connections\n`;
   content += ` */\n`;
@@ -60,17 +60,21 @@ async function generatePrismaServiceFile(outputDir: string): Promise<void> {
   content += `  constructor() {\n`;
   content += `    super();\n`;
   content += `  }\n\n`;
-  
+
   content += `  async onModuleInit() {\n`;
   content += `    await this.$connect();\n`;
   content += `  }\n\n`;
-  
+
   content += `  async onModuleDestroy() {\n`;
   content += `    await this.$disconnect();\n`;
   content += `  }\n`;
   content += `}\n`;
 
-  if (!(await fs.stat(filePath))) {
+  try {
+    await fs.access(filePath);
+    // File exists, don't overwrite it
+  } catch (error) {
+    // File doesn't exist, create it
     await fs.writeFile(filePath, content);
   }
 }

@@ -17,7 +17,8 @@ export async function generateCreateDto(
   model: EnhancedModel,
   outputDir: string,
   enums: DMMF.DatamodelEnum[] = [],
-  prismaClientProvider: string
+  prismaClientProvider: string,
+  systemFields: string[] = []
 ): Promise<void> {
   const className = `Create${model.name}Dto`;
   const fileName = `create-${toKebabCase(model.name)}.dto.ts`;
@@ -38,6 +39,11 @@ export async function generateCreateDto(
 
   // Process all fields that should be included
   for (const field of model.fields) {
+    // Skip system fields
+    if (systemFields.includes(field.name)) {
+      continue;
+    }
+
     if (!shouldIncludeFieldInDto(field, model, false)) {
       continue;
     }

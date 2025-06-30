@@ -13,7 +13,8 @@ export async function generateIdDto(
   model: EnhancedModel,
   outputDir: string,
   enums: DMMF.DatamodelEnum[] = [],
-  prismaClientProvider: string
+  prismaClientProvider: string,
+  systemFields: string[] = []
 ): Promise<void> {
   const modelName = model.name;
   const dtoName = `${modelName}IdDto`;
@@ -28,17 +29,23 @@ export async function generateIdDto(
   const usedEnums = new Set<string>();
 
   // Get only primary key fields (either single @id field or composite @@id fields)
+  // and exclude system fields
   const primaryKeyFields = model.fields.filter(field => {
+    // Skip system fields
+    if (systemFields.includes(field.name)) {
+      return false;
+    }
+
     // Check for single-field primary key
     if (field.isId) {
       return true;
     }
-    
+
     // Check for composite primary key using @@id directive
     if (model.primaryKey && model.primaryKey.fields.includes(field.name)) {
       return true;
     }
-    
+
     return false;
   });
 
