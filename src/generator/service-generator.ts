@@ -2,6 +2,7 @@ import {DMMF} from '@prisma/generator-helper';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import {toKebabCase} from './utils/string-formatter';
+import {hasSystemFieldsInPrimaryKey} from "./model-generator/utils/helpers";
 
 interface GenerateServicesOptions {
   models: DMMF.Model[];
@@ -31,10 +32,13 @@ async function generateService(model: DMMF.Model, outputDir: string, systemField
   const serviceName = `${modelName}Service`;
   const fileName = `${toKebabCase(modelName)}.service.ts`;
   const filePath = path.join(outputDir, fileName);
+  const primaryKeyHasSystemFields = hasSystemFieldsInPrimaryKey(model, systemFields);
 
   let content = `import { Injectable, NotFoundException } from '@nestjs/common';\n`;
   content += `import { PrismaService } from '../prisma';\n`;
-  content += `import { SystemContextService } from '../system-context/system-context.service';\n`;
+  if (primaryKeyHasSystemFields) {
+    content += `import { SystemContextService } from '../system-context/system-context.service';\n`;
+  }
   content += `import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';\n`;
   content += `import {\n`;
   content += `  Create${modelName}Dto,\n`;
@@ -47,7 +51,9 @@ async function generateService(model: DMMF.Model, outputDir: string, systemField
   content += `export class ${serviceName} {\n`;
   content += `  constructor(\n`;
   content += `    private readonly prisma: PrismaService,\n`;
-  content += `    private readonly systemContext: SystemContextService\n`;
+  if (primaryKeyHasSystemFields) {
+    content += `    private readonly systemContext: SystemContextService,\n`;
+  }
   content += `  ) {}\n\n`;
 
   // Find method

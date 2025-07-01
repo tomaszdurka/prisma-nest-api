@@ -1,5 +1,5 @@
-import { DMMF } from '@prisma/generator-helper';
-import { EnhancedModel } from './types';
+import {DMMF} from '@prisma/generator-helper';
+import {EnhancedModel} from './types';
 
 /**
  * Helper function to check if a field is a foreign key
@@ -10,9 +10,26 @@ export function isForeignKey(field: DMMF.Field, model: EnhancedModel): boolean {
   return model._foreignKeys.has(field.name);
 }
 
-/**
- * Helper function to determine if a field should be included in Create/Update DTOs
- */
+export function getPrimaryKeyFields(model: EnhancedModel) {
+  return model.fields.filter(field => {
+    // Check for single-field primary key
+    if (field.isId) {
+      return true;
+    }
+
+    // Check for composite primary key using @@id directive
+    if (model.primaryKey && model.primaryKey.fields.includes(field.name)) {
+      return true;
+    }
+
+    return false;
+  }).map(field => field.name);
+}
+
+export function hasSystemFieldsInPrimaryKey(model: EnhancedModel, systemFields: string[]) {
+  return getPrimaryKeyFields(model).some(field => systemFields.includes(field))
+}
+
 /**
  * Helper function to determine if a field should be included in Create/Update DTOs
  */
@@ -154,7 +171,7 @@ export function getOperatorsForFieldType(fieldType: string): Array<{name: string
     case 'String':
       // String fields - only equals
       return [
-        { name: 'equals', description: 'equals' }
+        {name: 'equals', description: 'equals'}
       ];
 
     case 'Int':
@@ -162,28 +179,28 @@ export function getOperatorsForFieldType(fieldType: string): Array<{name: string
     case 'Decimal':
       // Number fields - equals, gte, lte
       return [
-        { name: 'equals', description: 'equals' },
-        { name: 'gte', description: 'greater than or equal' },
-        { name: 'lte', description: 'less than or equal' }
+        {name: 'equals', description: 'equals'},
+        {name: 'gte', description: 'greater than or equal'},
+        {name: 'lte', description: 'less than or equal'}
       ];
 
     case 'DateTime':
       // Date fields - only gte, lte
       return [
-        { name: 'gte', description: 'greater than or equal' },
-        { name: 'lte', description: 'less than or equal' }
+        {name: 'gte', description: 'greater than or equal'},
+        {name: 'lte', description: 'less than or equal'}
       ];
 
     case 'Boolean':
       // Boolean fields - only equals
       return [
-        { name: 'equals', description: 'equals' }
+        {name: 'equals', description: 'equals'}
       ];
 
     default:
       // Default - only equals for safety
       return [
-        { name: 'equals', description: 'equals' }
+        {name: 'equals', description: 'equals'}
       ];
   }
 }

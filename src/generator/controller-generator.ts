@@ -2,6 +2,7 @@ import {DMMF} from '@prisma/generator-helper';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import {toKebabCase} from './utils/string-formatter';
+import {getPrimaryKeyFields} from "./model-generator/utils/helpers";
 
 interface GenerateControllersOptions {
   models: DMMF.Model[];
@@ -93,7 +94,7 @@ function toPrismaModelName(modelName: string): string {
  */
 function getRouteParamPath(model: DMMF.Model, systemFields: string[] = []): string {
   // Check if model has a composite primary key
-  const primaryKeyFields = model.primaryKey ? model.primaryKey.fields : [];
+  const primaryKeyFields = getPrimaryKeyFields(model)
   // Filter out system fields from the primary key fields
   const nonSystemPrimaryKeyFields = primaryKeyFields.filter(field => !systemFields.includes(field));
 
