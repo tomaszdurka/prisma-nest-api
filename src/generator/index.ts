@@ -13,7 +13,7 @@ import {generateSystemContext} from "./system-context-generator";
 generatorHandler({
   onManifest() {
     return {
-      version: '1.5.1',
+      version: '1.5.2',
       defaultOutput: 'src/generated', 
       prettyName: 'NestJS API Generator',
     };
@@ -69,6 +69,7 @@ generatorHandler({
     await generateControllers({
       models,
       outputDir,
+      systemFields,
     });
 
     await generateModules({

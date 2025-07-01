@@ -1,35 +1,36 @@
-import { DMMF } from '@prisma/generator-helper';
+import {DMMF} from '@prisma/generator-helper';
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { toKebabCase } from './utils/string-formatter';
+import {toKebabCase} from './utils/string-formatter';
 
 interface GenerateControllersOptions {
   models: DMMF.Model[];
   outputDir: string;
   prismaClientProvider?: string;
+  systemFields?: string[];
 }
 
 /**
  * Generate CRUD controllers for all models
  */
 export async function generateControllers(options: GenerateControllersOptions): Promise<void> {
-  const { models, outputDir } = options;
+  const {models, outputDir, systemFields = []} = options;
 
   // Generate service directory for Prisma service
-  await fs.mkdir(path.join(outputDir, 'prisma'), { recursive: true });
+  await fs.mkdir(path.join(outputDir, 'prisma'), {recursive: true});
 
   // Generate controllers for each model
   for (const model of models) {
     const modelOutputDir = path.join(outputDir, toKebabCase(model.name));
-    await fs.mkdir(modelOutputDir, { recursive: true });
-    await generateController(model, modelOutputDir);
+    await fs.mkdir(modelOutputDir, {recursive: true});
+    await generateController(model, modelOutputDir, systemFields);
   }
 }
 
 /**
  * Generate CRUD controller for a model
  */
-async function generateController(model: DMMF.Model, outputDir: string): Promise<void> {
+async function generateController(model: DMMF.Model, outputDir: string, systemFields: string[] = []): Promise<void> {
   const modelName = model.name;
   const controllerName = `${modelName}Controller`;
   const fileName = `${toKebabCase(modelName)}.controller.ts`;
@@ -54,7 +55,7 @@ async function generateController(model: DMMF.Model, outputDir: string): Promise
   content += `  constructor(private readonly ${toPrismaModelName(modelName)}Service: ${modelName}Service) {}\n\n`;
 
   // Find endpoint
-  content += generateFindEndpoint(model);
+  content += generateFindEndpoint(model, systemFields);
 
   // FindMany endpoint with flat query
   content += generateFindManyEndpoint(model);
@@ -66,10 +67,10 @@ async function generateController(model: DMMF.Model, outputDir: string): Promise
   content += generateCreateEndpoint(model);
 
   // Update endpoint
-  content += generateUpdateEndpoint(model);
+  content += generateUpdateEndpoint(model, systemFields);
 
   // Delete endpoint
-  content += generateDeleteEndpoint(model);
+  content += generateDeleteEndpoint(model, systemFields);
 
   content += `}\n`;
 
@@ -88,15 +89,16 @@ function toPrismaModelName(modelName: string): string {
  * Helper function to get route path parameters for model primary key
  * For single primary key: ':id'
  * For composite primary key: ':field1/:field2'
+ * Excludes system fields from the route path if they are part of the primary key
  */
-function getRouteParamPath(model: DMMF.Model): string {
+function getRouteParamPath(model: DMMF.Model, systemFields: string[] = []): string {
   // Check if model has a composite primary key
-  if (model.primaryKey && model.primaryKey.fields.length > 1) {
-    return model.primaryKey.fields.map(field => `:${field}`).join('/');
-  }
+  const primaryKeyFields = model.primaryKey ? model.primaryKey.fields : [];
+  // Filter out system fields from the primary key fields
+  const nonSystemPrimaryKeyFields = primaryKeyFields.filter(field => !systemFields.includes(field));
 
-  // Default to ':id' for single field primary keys
-  return ':id';
+  // Otherwise, use the non-system primary key fields
+  return nonSystemPrimaryKeyFields.map(field => `:${field}`).join('/');
 }
 
 /**
@@ -120,12 +122,12 @@ function generateCreateEndpoint(model: DMMF.Model): string {
 /**
  * Generate update endpoint
  */
-function generateUpdateEndpoint(model: DMMF.Model): string {
+function generateUpdateEndpoint(model: DMMF.Model, systemFields: string[] = []): string {
   const modelName = model.name;
   const prismaModelName = toPrismaModelName(modelName);
 
   // Get route parameter path for this model's primary key
-  const routePath = getRouteParamPath(model);
+  const routePath = getRouteParamPath(model, systemFields);
 
   let content = `  @Put('${routePath}')\n`;
   content += `  @ApiOperation({ summary: 'Update a ${modelName} record', operationId: 'update${modelName}' })\n`;
@@ -142,12 +144,12 @@ function generateUpdateEndpoint(model: DMMF.Model): string {
 /**
  * Generate find endpoint
  */
-function generateFindEndpoint(model: DMMF.Model): string {
+function generateFindEndpoint(model: DMMF.Model, systemFields: string[] = []): string {
   const modelName = model.name;
   const prismaModelName = toPrismaModelName(modelName);
 
   // Get route parameter path for this model's primary key
-  const routePath = getRouteParamPath(model);
+  const routePath = getRouteParamPath(model, systemFields);
 
   let content = `  @Get('${routePath}')\n`;
   content += `  @ApiOperation({ summary: 'Get a ${modelName} record by ID', operationId: 'get${modelName}' })\n`;
@@ -209,12 +211,12 @@ function generateSearchEndpoint(model: DMMF.Model): string {
 /**
  * Generate delete endpoint
  */
-function generateDeleteEndpoint(model: DMMF.Model): string {
+function generateDeleteEndpoint(model: DMMF.Model, systemFields: string[] = []): string {
   const modelName = model.name;
   const prismaModelName = toPrismaModelName(modelName);
 
   // Get route parameter path for this model's primary key
-  const routePath = getRouteParamPath(model);
+  const routePath = getRouteParamPath(model, systemFields);
 
   let content = `  @Delete('${routePath}')\n`;
   content += `  @ApiOperation({ summary: 'Delete a ${modelName} record', operationId: 'delete${modelName}' })\n`;
