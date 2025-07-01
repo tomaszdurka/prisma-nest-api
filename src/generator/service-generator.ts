@@ -204,7 +204,11 @@ function generateFindManyMethod(model: DMMF.Model, systemFields: string[] = []):
     content += `      ...cursor && {cursor: ${getPrismaWhereClause(model, 'cursor', systemFieldsInModel)}}\n`;
     content += `    });\n`;
   } else {
-    content += `    return this.prisma.${prismaModelName}.findMany({...query, where, cursor});\n`;
+    if (primaryKeyFields.length > 1) {
+      content += `    return this.prisma.${prismaModelName}.findMany({...query, where, cursor: ${getPrismaWhereClause(model, 'cursor', systemFieldsInModel)}});\n`;
+    } else {
+      content += `    return this.prisma.${prismaModelName}.findMany({...query, where, cursor});\n`;
+    }
   }
 
   content += `  }\n\n`;
