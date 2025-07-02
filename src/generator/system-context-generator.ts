@@ -20,23 +20,72 @@ export async function generateSystemContext(options: GenerateSystemContextOption
   await generateSystemContextService(systemContextDir, systemFields);
 
   // Generate module
-  await generateSystemContextModule(systemContextDir);
+  await generateSystemContextModule(systemContextDir, systemFields);
+}
+
+/**
+ * Generate a service for a specific system field
+ */
+async function generateFieldService(outputDir: string, field: string): Promise<void> {
+  const className = `${capitalizeFirstLetter(field)}ContextService`;
+  const fileName = `${field}-context.service.ts`;
+  const filePath = path.join(outputDir, fileName);
+
+  let content = `import { Injectable } from '@nestjs/common';\n\n`;
+  content += `@Injectable()\n`;
+  content += `export class ${className} {\n`;
+  content += `  get${capitalizeFirstLetter(field)}(): any {\n`;
+  content += `    return;\n`;
+  content += `  }\n`;
+  content += `}\n`;
+
+  try {
+    await fs.access(filePath);
+    // File exists, don't overwrite it
+  } catch (error) {
+    // File doesn't exist, create it
+    await fs.writeFile(filePath, content);
+  }
 }
 
 /**
  * Generate SystemContextService
  */
 async function generateSystemContextService(outputDir: string, systemFields: string[]): Promise<void> {
+  // First, generate individual field services
+  for (const field of systemFields) {
+    await generateFieldService(outputDir, field);
+  }
+
+  // Then, generate the main context service
   const filePath = path.join(outputDir, 'system-context.service.ts');
 
-  let content = `import { Injectable } from '@nestjs/common';\n\n`;
+  let imports = `import { Injectable } from '@nestjs/common';\n`;
+
+  // Import all field services
+  for (const field of systemFields) {
+    const className = `${capitalizeFirstLetter(field)}ContextService`;
+    imports += `import { ${className} } from './${field}-context.service';\n`;
+  }
+  imports += `\n`;
+
+  let content = imports;
   content += `@Injectable()\n`;
   content += `export class SystemContextService {\n`;
 
-  // Generate methods for each system field
+  // Constructor with injected field services
+  content += `  constructor(\n`;
+  for (const field of systemFields) {
+    const className = `${capitalizeFirstLetter(field)}ContextService`;
+    const propertyName = `private readonly ${field}Service`;
+    content += `    ${propertyName}: ${className},\n`;
+  }
+  content += `  ) {}\n\n`;
+
+  // Generate methods for each system field that delegate to the field service
   for (const field of systemFields) {
     content += `  get${capitalizeFirstLetter(field)}(): any {\n`;
-    content += `    return;\n`;
+    content += `    return this.${field}Service.get${capitalizeFirstLetter(field)}();\n`;
     content += `  }\n\n`;
   }
 
@@ -59,14 +108,36 @@ async function generateSystemContextService(outputDir: string, systemFields: str
 /**
  * Generate SystemContextModule
  */
-async function generateSystemContextModule(outputDir: string): Promise<void> {
+async function generateSystemContextModule(outputDir: string, systemFields: string[] = []): Promise<void> {
   const filePath = path.join(outputDir, 'system-context.module.ts');
 
-  let content = `import { Module } from '@nestjs/common';\n`;
-  content += `import { SystemContextService } from './system-context.service';\n\n`;
+  let imports = `import { Module } from '@nestjs/common';\n`;
+  imports += `import { SystemContextService } from './system-context.service';\n`;
+
+  // Import all field services
+  for (const field of systemFields) {
+    const className = `${capitalizeFirstLetter(field)}ContextService`;
+    imports += `import { ${className} } from './${field}-context.service';\n`;
+  }
+  imports += `\n`;
+
+  let providers = `  providers: [SystemContextService`;
+  let exports = `  exports: [SystemContextService`;
+
+  // Add all field services to providers and exports
+  for (const field of systemFields) {
+    const className = `${capitalizeFirstLetter(field)}ContextService`;
+    providers += `, ${className}`;
+    exports += `, ${className}`;
+  }
+
+  providers += `],\n`;
+  exports += `],\n`;
+
+  let content = imports;
   content += `@Module({\n`;
-  content += `  providers: [SystemContextService],\n`;
-  content += `  exports: [SystemContextService],\n`;
+  content += providers;
+  content += exports;
   content += `})\n`;
   content += `export class SystemContextModule {}\n`;
 
