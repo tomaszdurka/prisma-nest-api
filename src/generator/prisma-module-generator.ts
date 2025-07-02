@@ -28,11 +28,6 @@ async function generatePrismaModuleFile(outputDir: string): Promise<void> {
 
   let content = `import { Module, Global } from '@nestjs/common';\n`;
   content += `import { PrismaService } from './prisma.service';\n\n`;
-
-  content += `/**\n`;
-  content += ` * Global Prisma module that provides PrismaService throughout the application\n`;
-  content += ` */\n`;
-  content += `@Global()\n`;
   content += `@Module({\n`;
   content += `  providers: [PrismaService],\n`;
   content += `  exports: [PrismaService],\n`;
@@ -52,9 +47,6 @@ async function generatePrismaServiceFile(outputDir: string): Promise<void> {
   let content = `import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';\n`;
   content += `import { PrismaClient } from '@prisma/client';\n\n`;
 
-  content += `/**\n`;
-  content += ` * Injectable Prisma service that handles database connections\n`;
-  content += ` */\n`;
   content += `@Injectable()\n`;
   content += `export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {\n`;
   content += `  constructor() {\n`;

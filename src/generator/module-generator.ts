@@ -44,12 +44,9 @@ async function generateModelModule(model: DMMF.Model, outputDir: string): Promis
   let content = `import { Module } from '@nestjs/common';\n`;
   content += `import { ${controllerName} } from './${toKebabCase(modelName)}.controller';\n`;
   content += `import { ${serviceName} } from './${toKebabCase(modelName)}.service';\n`;
-  content += `import { PrismaModule } from '../prisma/prisma.module';\n`;
-  content += `import { SystemContextModule } from '../system-context/system-context.module';\n\n`;
+  content += `import { PrismaModule } from '../prisma';\n`;
+  content += `import { SystemContextModule } from '../system-context';\n\n`;
 
-  content += `/**\n`;
-  content += ` * NestJS module for ${modelName} entity\n`;
-  content += ` */\n`;
   content += `@Module({\n`;
   content += `  controllers: [${controllerName}],\n`;
   content += `  providers: [${serviceName}],\n`;
@@ -58,7 +55,13 @@ async function generateModelModule(model: DMMF.Model, outputDir: string): Promis
   content += `})\n`;
   content += `export class ${modelName}Module {}\n`;
 
-  await fs.writeFile(filePath, content);
+  try {
+    await fs.access(filePath);
+    // File exists, don't overwrite it
+  } catch (error) {
+    // File doesn't exist, create it
+    await fs.writeFile(filePath, content);
+  }
 }
 
 /**
@@ -68,13 +71,19 @@ async function generateModelIndexFile(model: DMMF.Model, outputDir: string): Pro
   const modelName = model.name;
   const indexPath = path.join(outputDir, toKebabCase(modelName), 'index.ts');
 
-  let content = `// Export all components for ${modelName} module\n`;
+  let content = ``;
   content += `export * from './${toKebabCase(modelName)}.controller';\n`;
   content += `export * from './${toKebabCase(modelName)}.service';\n`;
   content += `export * from './${toKebabCase(modelName)}.module';\n`;
   content += `export * from './dto';\n`;
 
-  await fs.writeFile(indexPath, content);
+  try {
+    await fs.access(indexPath);
+    // File exists, don't overwrite it
+  } catch (error) {
+    // File doesn't exist, create it
+    await fs.writeFile(indexPath, content);
+  }
 }
 
 /**
@@ -84,12 +93,9 @@ async function generatePrismaIndexFile(outputDir: string): Promise<void> {
   const fileName = 'index.ts';
   const filePath = path.join(outputDir, 'prisma', fileName);
 
-  let content = `// Export all components from Prisma module
-`;
-  content += `export * from './prisma.module';
-`;
-  content += `export * from './prisma.service';
-`;
+  let content = ``;
+  content += `export * from './prisma.module';\n`;
+  content += `export * from './prisma.service';\n`;
 
   await fs.writeFile(filePath, content);
 }
@@ -103,10 +109,8 @@ async function generateSystemContextIndexFile(outputDir: string): Promise<void> 
 
   let content = `// Export all components from SystemContext module
 `;
-  content += `export * from './system-context.module';
-`;
-  content += `export * from './system-context.service';
-`;
+  content += `export * from './system-context.module';\n`;
+  content += `export * from './system-context.service';\n`;
 
   await fs.writeFile(filePath, content);
 }
@@ -129,11 +133,8 @@ async function generateRootModule(models: DMMF.Model[], outputDir: string): Prom
 
   let content = `import { Module } from '@nestjs/common';\n`;
   content += `import { PrismaModule } from './prisma';\n`;
-  content += `import { SystemContextModule } from './system-context/system-context.module';\n`;
+  content += `import { SystemContextModule } from './system-context';\n`;
   content += imports;
-  content += `\n/**\n`;
-  content += ` * Root module that imports all model modules\n`;
-  content += ` */\n`;
   content += `@Module({\n`;
   content += `  imports: [\n`;
   content += `    PrismaModule,\n`;
@@ -147,5 +148,11 @@ async function generateRootModule(models: DMMF.Model[], outputDir: string): Prom
   content += `})\n`;
   content += `export class AppModule {}\n`;
 
-  await fs.writeFile(filePath, content);
+  try {
+    await fs.access(filePath);
+    // File exists, don't overwrite it
+  } catch (error) {
+    // File doesn't exist, create it
+    await fs.writeFile(filePath, content);
+  }
 }

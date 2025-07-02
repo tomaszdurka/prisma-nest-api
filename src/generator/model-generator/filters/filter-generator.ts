@@ -28,7 +28,7 @@ export async function generateFilterClass(model: EnhancedModel, outputDir: strin
   const usedFilterTypes = new Set<string>();
 
   // Generate the base filter class
-  let baseFilterClass = `/**\n * Filter class for ${model.name} model fields\n */\nexport class ${baseClassName} {\n`;
+  let baseFilterClass = `export class ${baseClassName} {\n`;
 
   // Add properties for each field
   for (const field of model.fields) {
@@ -78,7 +78,7 @@ export async function generateFilterClass(model: EnhancedModel, outputDir: strin
   baseFilterClass += `}\n\n`;
 
   // Generate the where filter class that extends the base class
-  let whereFilterClass = `/**\n * Where filter class for ${model.name} model with AND/OR/NOT operators\n */\nexport class ${whereClassName} extends ${baseClassName} {\n`;
+  let whereFilterClass = `export class ${whereClassName} extends ${baseClassName} {\n`;
 
   // Add AND, OR, NOT operators
   whereFilterClass += `  @ApiProperty({ required: false, type: () => [${whereClassName}], isArray: true })\n`;
