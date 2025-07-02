@@ -13,7 +13,7 @@ import {generateSystemContext} from "./system-context-generator";
 generatorHandler({
   onManifest() {
     return {
-      version: '1.7.0',
+      version: '1.7.1',
       defaultOutput: 'src/generated', 
       prettyName: 'NestJS API Generator',
     };
