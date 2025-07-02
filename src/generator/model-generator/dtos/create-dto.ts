@@ -3,7 +3,8 @@ import {DMMF} from "@prisma/generator-helper";
 import * as path from "node:path";
 import {ImportManager} from "../utils/import-manager";
 import {
-  getTypeScriptType, getValidatorForField,
+  getTypeScriptInputType,
+  getValidatorForField,
   isEnumField,
   shouldIncludeFieldInDto
 } from "../utils/helpers";
@@ -50,7 +51,10 @@ export async function generateCreateDto(
 
     // Fields with defaults are optional but still included
     const isOptional = !field.isRequired || field.hasDefaultValue;
-    const typeScriptType = getTypeScriptType(field, enums);
+    const typeScriptType = getTypeScriptInputType(field, enums);
+    if (typeScriptType.includes('Prisma')) {
+      importManager.addImport('../../prisma', ['Prisma'])
+    }
 
     // Check if this is a read-only field but allowed in DTO
     const isReadOnly = field.isReadOnly && !(

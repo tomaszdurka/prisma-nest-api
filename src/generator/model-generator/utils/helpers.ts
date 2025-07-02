@@ -107,6 +107,10 @@ export function getTypeScriptType(field: DMMF.Field, enums: DMMF.DatamodelEnum[]
   return getBaseTypeScriptType(field);
 }
 
+export function getTypeScriptInputType(field: DMMF.Field, enums: DMMF.DatamodelEnum[] = []): string {
+  return getTypeScriptType(field, enums).replace(/Prisma\.JsonValue/g, 'Prisma.InputJsonValue')
+}
+
 /**
  * Helper to convert Prisma types to TypeScript types
  */
@@ -129,7 +133,7 @@ export function getBaseTypeScriptType(field: DMMF.Field): string {
     case 'DateTime':
       return 'Date';
     case 'Json':
-      return 'Record<string, any>';
+      return 'Prisma.JsonValue';
     default:
       // For relation fields, use the type name
       return field.type;

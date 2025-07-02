@@ -50,6 +50,9 @@ async function generateModelDto(
     }
 
     const typeScriptType = getTypeScriptType(field, enums);
+    if (typeScriptType.includes('Prisma')) {
+      importManager.addImport('../../prisma', ['Prisma'])
+    }
 
     // Determine if this is a genuine read-only field (not a foreign key part of a relation)
     const isForeignKeyInRelation = model._foreignKeys && model._foreignKeys.has(field.name) &&

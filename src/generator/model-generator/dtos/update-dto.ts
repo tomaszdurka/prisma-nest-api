@@ -3,7 +3,12 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import { EnhancedModel } from '../utils/types';
 import { ImportManager } from '../utils/import-manager';
-import { getTypeScriptType, getValidatorForField, shouldIncludeFieldInDto, isEnumField } from '../utils/helpers';
+import {
+  getValidatorForField,
+  shouldIncludeFieldInDto,
+  isEnumField,
+  getTypeScriptInputType
+} from '../utils/helpers';
 import { toKebabCase } from '../../utils/string-formatter';
 
 /**
@@ -44,7 +49,10 @@ export async function generateUpdateDto(
     }
 
     // All fields in Update DTOs are optional
-    const typeScriptType = getTypeScriptType(field, enums);
+    const typeScriptType = getTypeScriptInputType(field, enums);
+    if (typeScriptType.includes('Prisma')) {
+      importManager.addImport('../../prisma', ['Prisma'])
+    }
 
     // Check if this is a read-only field but allowed in DTO
     const isReadOnly = field.isReadOnly && !(

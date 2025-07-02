@@ -59,6 +59,9 @@ export async function generateIdDto(
 
   for (const field of primaryKeyFields) {
     const typeScriptType = getTypeScriptType(field, enums);
+    if (typeScriptType.includes('Prisma')) {
+      importManager.addImport('../../prisma', ['Prisma'])
+    }
 
     // Handle enum types
     if (isEnumField(field, enums)) {

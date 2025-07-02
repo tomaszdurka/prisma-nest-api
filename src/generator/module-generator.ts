@@ -20,9 +20,6 @@ export async function generateModules(options: GenerateModulesOptions): Promise<
     await generateModelIndexFile(model, outputDir);
   }
 
-  // Generate index file for prisma module
-  await generatePrismaIndexFile(outputDir);
-
   // Generate index file for system-context module
   await generateSystemContextIndexFile(outputDir);
 
@@ -84,20 +81,6 @@ async function generateModelIndexFile(model: DMMF.Model, outputDir: string): Pro
     // File doesn't exist, create it
     await fs.writeFile(indexPath, content);
   }
-}
-
-/**
- * Generate an index file for the Prisma module
- */
-async function generatePrismaIndexFile(outputDir: string): Promise<void> {
-  const fileName = 'index.ts';
-  const filePath = path.join(outputDir, 'prisma', fileName);
-
-  let content = ``;
-  content += `export * from './prisma.module';\n`;
-  content += `export * from './prisma.service';\n`;
-
-  await fs.writeFile(filePath, content);
 }
 
 /**
