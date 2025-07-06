@@ -195,28 +195,26 @@ function generateFindManyMethod(model: DMMF.Model, systemFields: string[] = []):
     systemFieldsInModel.forEach(field => {
       content += `    const ${field} = this.systemContext.get${capitalizeFirstLetter(field)}();\n`;
     });
-
-    // Use inline cursor and where handling with spread operator
-    content += `    return this.prisma.${prismaModelName}.findMany({\n`;
-    content += `      ...query,\n`;
-
-    // Only add system fields to where if they are part of the model
-    if (systemFieldsInModel.length > 0) {
-      content += `      ...where && {where: {...where, ${systemFieldsInModel.join(', ')}}},\n`;
-    } else {
-      content += `      ...where && {where},\n`;
-    }
-
-    content += `      ...cursor && {cursor: ${getPrismaWhereClause(model, 'cursor', systemFieldsInModel)}}\n`;
-    content += `    });\n`;
-  } else {
-    if (primaryKeyFields.length > 1) {
-      content += `    return this.prisma.${prismaModelName}.findMany({...query, where, cursor: ${getPrismaWhereClause(model, 'cursor', systemFieldsInModel)}});\n`;
-    } else {
-      content += `    return this.prisma.${prismaModelName}.findMany({...query, where, cursor});\n`;
-    }
   }
 
+  // Use inline cursor and where handling with spread operator
+  content += `    return this.prisma.${prismaModelName}.findMany({\n`;
+  content += `      ...query,\n`;
+
+  // Only add system fields to where if they are part of the model
+  if (systemFieldsInModel.length > 0) {
+    content += `      ...where && {where: {...where, ${systemFieldsInModel.join(', ')}}},\n`;
+  } else {
+    content += `      where,\n`;
+  }
+
+  if (primaryKeyFields.length > 1 || systemFieldsInModel.length > 1) {
+    content += `      ...cursor && {cursor: ${getPrismaWhereClause(model, 'cursor', systemFieldsInModel)}}\n`;
+  } else {
+    content += `      cursor,\n`;
+  }
+
+  content += `    });\n`;
   content += `  }\n\n`;
 
   return content;
