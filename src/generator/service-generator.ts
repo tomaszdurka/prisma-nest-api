@@ -37,9 +37,8 @@ async function generateService(model: DMMF.Model, outputDir: string, systemField
   let content = `import { Injectable, NotFoundException } from '@nestjs/common';\n`;
   content += `import { PrismaService } from '../prisma';\n`;
   if (primaryKeyHasSystemFields) {
-    content += `import { SystemContextService } from '../system-context/system-context.service';\n`;
+    content += `import { SystemContextService } from '../system-context';\n`;
   }
-  content += `import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';\n`;
   content += `import {\n`;
   content += `  Create${modelName}Dto,\n`;
   content += `  Update${modelName}Dto,\n`;
@@ -145,15 +144,7 @@ function generateFindMethod(model: DMMF.Model, systemFields: string[] = []): str
       content += `    const ${field} = this.systemContext.get${capitalizeFirstLetter(field)}();\n`;
     });
   }
-
-  content += `    try {\n`;
-  content += `      return await this.prisma.${prismaModelName}.findUniqueOrThrow({ where: ${whereClause} });\n`;
-  content += `    } catch (error) {\n`;
-  content += `      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {\n`;
-  content += `        throw new NotFoundException('${modelName} record not found');\n`;
-  content += `      }\n`;
-  content += `      throw error;\n`;
-  content += `    }\n`;
+  content += `    return this.prisma.${prismaModelName}.findUnique({ where: ${whereClause} });\n`;
   content += `  }\n\n`;
 
   return content;
@@ -316,15 +307,7 @@ function generateUpdateMethod(model: DMMF.Model, systemFields: string[] = []): s
       content += `    const ${field} = this.systemContext.get${capitalizeFirstLetter(field)}();\n`;
     });
   }
-
-  content += `    try {\n`;
-  content += `      return await this.prisma.${prismaModelName}.update({ where: ${whereClause}, data });\n`;
-  content += `    } catch (error) {\n`;
-  content += `      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {\n`;
-  content += `        throw new NotFoundException('${modelName} record not found');\n`;
-  content += `      }\n`;
-  content += `      throw error;\n`;
-  content += `    }\n`;
+  content += `    return this.prisma.${prismaModelName}.update({ where: ${whereClause}, data });\n`;
   content += `  }\n\n`;
 
   return content;
@@ -357,15 +340,7 @@ function generateDeleteMethod(model: DMMF.Model, systemFields: string[] = []): s
       content += `    const ${field} = this.systemContext.get${capitalizeFirstLetter(field)}();\n`;
     });
   }
-
-  content += `    try {\n`;
-  content += `      await this.prisma.${prismaModelName}.delete({ where: ${whereClause} });\n`;
-  content += `    } catch (error) {\n`;
-  content += `      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {\n`;
-  content += `        throw new NotFoundException('${modelName} record not found');\n`;
-  content += `      }\n`;
-  content += `      throw error;\n`;
-  content += `    }\n`;
+  content += `    await this.prisma.${prismaModelName}.delete({ where: ${whereClause} });\n`;
   content += `  }\n\n`;
 
   return content;

@@ -37,7 +37,7 @@ async function generateController(model: DMMF.Model, outputDir: string, systemFi
   const fileName = `${toKebabCase(modelName)}.controller.ts`;
   const filePath = path.join(outputDir, fileName);
 
-  let content = `import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';\n`;
+  let content = `import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpCode, HttpStatus, NotFoundException } from '@nestjs/common';\n`;
   content += `import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';\n`;
   content += `import { ${modelName}Service } from './${toKebabCase(modelName)}.service';\n`;
   content += `import {\n`;
@@ -157,7 +157,11 @@ function generateFindEndpoint(model: DMMF.Model, systemFields: string[] = []): s
   content += `  @ApiResponse({ status: 200, description: '${modelName} record', type: ${modelName}Dto })\n`;
   content += `  @ApiResponse({ status: 404, description: '${modelName} record not found' })\n`;
   content += `  async get${modelName}(@Param() params: ${modelName}IdDto) {\n`;
-  content += `    return this.${prismaModelName}Service.find${modelName}(params);\n`;
+  content += `    const ${prismaModelName} = await this.${prismaModelName}Service.find${modelName}(params);\n`;
+  content += `    if (!${prismaModelName}) {\n`;
+  content += `      throw new NotFoundException();\n`;
+  content += `    }\n`;
+  content += `    return ${prismaModelName};\n`;
   content += `  }\n\n`;
 
   return content;
