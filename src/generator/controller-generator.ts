@@ -117,7 +117,6 @@ function generateCreateEndpoint(model: DMMF.Model): string {
 
   let content = `  @Post()\n`;
   content += `  @ApiOperation({ summary: 'Create a new ${modelName} record', operationId: 'create${modelName}' })\n`;
-  content += `  @ApiBody({ type: Create${modelName}Dto })\n`;
   content += `  @ApiResponse({ status: 201, description: 'Created ${modelName} record', type: ${modelName}Dto })\n`;
   content += `  async create${modelName}(@Body() data: Create${modelName}Dto) {\n`;
   content += `    return this.${prismaModelName}Service.create${modelName}(data);\n`;
@@ -138,7 +137,6 @@ function generateUpdateEndpoint(model: DMMF.Model, systemFields: string[] = []):
 
   let content = `  @Put('${routePath}')\n`;
   content += `  @ApiOperation({ summary: 'Update a ${modelName} record', operationId: 'update${modelName}' })\n`;
-  content += `  @ApiBody({ type: Update${modelName}Dto })\n`;
   content += `  @ApiResponse({ status: 200, description: 'Updated ${modelName} record', type: ${modelName}Dto })\n`;
   content += `  @ApiResponse({ status: 404, description: '${modelName} record not found' })\n`;
   content += `  async update${modelName}(@Param() params: ${modelName}IdDto, @Body() data: Update${modelName}Dto) {\n`;
@@ -205,7 +203,6 @@ function generateSearchEndpoint(model: DMMF.Model): string {
 
   let content = `  @Post('search')\n`;
   content += `  @ApiOperation({ summary: 'Search ${modelName} records', operationId: 'search${modelName}' })\n`;
-  content += `  @ApiBody({ type: FindMany${modelName}Dto })\n`;
   content += `  @ApiResponse({ status: 200, description: 'List of ${modelName} records', type: ${modelName}ListDto })\n`;
   content += `  async search${modelName}(@Body() query: FindMany${modelName}Dto) {\n`;
   content += `    const {cursor, skip, take, ...countQuery} = query;\n`;
