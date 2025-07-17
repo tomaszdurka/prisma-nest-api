@@ -75,7 +75,13 @@ async function generateController(model: DMMF.Model, outputDir: string, systemFi
 
   content += `}\n`;
 
-  await fs.writeFile(filePath, content);
+  try {
+    await fs.access(filePath);
+    // File exists, don't overwrite it
+  } catch (error) {
+    // File doesn't exist, create it
+    await fs.writeFile(filePath, content);
+  }
 }
 
 /**
