@@ -8,6 +8,7 @@ import {copyUtilities} from './utils-copier';
 import {generateModules} from "./module-generator";
 import {generatePrismaModule} from "./prisma-module-generator";
 import {generateSystemContext} from "./system-context-generator";
+import {generateEnumFilters} from "./enum-filters-generator";
 
 // Main generator handler
 generatorHandler({
@@ -48,6 +49,12 @@ generatorHandler({
     await generateSystemContext({
       outputDir,
       systemFields,
+    });
+
+    // Generate all enum filters in a central location
+    await generateEnumFilters({
+      enums,
+      outputDir,
     });
 
     // Generate model DTOs for create, update, findUnique, findMany operations

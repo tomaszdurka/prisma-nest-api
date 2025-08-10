@@ -4,6 +4,7 @@ import { EnhancedModel } from '../utils/types';
 import { ImportManager } from '../utils/import-manager';
 import { toKebabCase } from '../../utils/string-formatter';
 
+
 /**
  * Generate Filter Classes for a model
  * This creates two classes:
@@ -26,6 +27,7 @@ export async function generateFilterClass(model: EnhancedModel, outputDir: strin
 
   // Determine which filter types are actually used
   const usedFilterTypes = new Set<string>();
+  const usedEnumFilters = new Set<string>();
 
   // Generate the base filter class
   let baseFilterClass = `export class ${baseClassName} {\n`;
@@ -38,35 +40,46 @@ export async function generateFilterClass(model: EnhancedModel, outputDir: strin
     let importType;
     let tsType;
 
-    switch (field.type) {
-      case 'String':
-        importType = 'StringFilter';
-        tsType = 'StringFilter';
-        break;
-      case 'Int':
-        importType = 'IntFilter';
-        tsType = 'IntFilter';
-        break;
-      case 'Float':
-      case 'Decimal':
-        importType = 'DecimalFilter';
-        tsType = 'DecimalFilter';
-        break;
-      case 'Boolean':
-        importType = 'BooleanFilter';
-        tsType = 'BooleanFilter';
-        break;
-      case 'DateTime':
-        importType = 'DateFilter';
-        tsType = 'DateFilter';
-        break;
-      default:
-        // For enums, use StringFilter as it's most appropriate
-        importType = 'StringFilter';
-        tsType = 'StringFilter';
-    }
+    // Check if field is an enum
+    const isEnum = field.kind === 'enum';
 
-    usedFilterTypes.add(importType);
+    if (isEnum) {
+      // Use the specific enum filter
+      tsType = `${field.type}Filter`;
+      usedEnumFilters.add(tsType);
+    } else {
+      switch (field.type) {
+        case 'String':
+          importType = 'StringFilter';
+          tsType = 'StringFilter';
+          break;
+        case 'Int':
+          importType = 'IntFilter';
+          tsType = 'IntFilter';
+          break;
+        case 'Float':
+        case 'Decimal':
+          importType = 'DecimalFilter';
+          tsType = 'DecimalFilter';
+          break;
+        case 'Boolean':
+          importType = 'BooleanFilter';
+          tsType = 'BooleanFilter';
+          break;
+        case 'DateTime':
+          importType = 'DateFilter';
+          tsType = 'DateFilter';
+          break;
+        default:
+          // For unknown types, use StringFilter as fallback
+          importType = 'StringFilter';
+          tsType = 'StringFilter';
+      }
+      
+      if (importType) {
+        usedFilterTypes.add(importType);
+      }
+    }
 
     // Add the property to the class
     baseFilterClass += `  @ApiProperty({ required: false, type: () => ${tsType} })\n`;
@@ -100,6 +113,11 @@ export async function generateFilterClass(model: EnhancedModel, outputDir: strin
 
   // Only import filter types that are actually used
   importManager.addImport('../../lib', Array.from(usedFilterTypes));
+  
+  // Import enum-specific filters from central location
+  if (usedEnumFilters.size > 0) {
+    importManager.addImport('../../enum-filters', Array.from(usedEnumFilters));
+  }
 
   // Generate content with imports
   let content = importManager.generateImports();
