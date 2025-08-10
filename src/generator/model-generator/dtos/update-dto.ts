@@ -113,7 +113,7 @@ export async function generateUpdateDto(
 
   // Import Prisma if we have decimal fields
   if (model.fields.some(field => field.type === 'Decimal')) {
-    importManager.addImport('@prisma/client', 'Prisma');
+    importManager.addImport('../../prisma', 'Prisma');
   }
 
   // Generate content with imports

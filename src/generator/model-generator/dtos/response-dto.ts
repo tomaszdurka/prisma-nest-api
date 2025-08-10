@@ -84,7 +84,7 @@ async function generateModelDto(
 
   // Import Prisma if we have decimal fields
   if (model.fields.some(field => field.type === 'Decimal')) {
-    importManager.addImport('@prisma/client', 'Prisma');
+    importManager.addImport('../../prisma', 'Prisma');
   }
 
   // Generate content with imports
@@ -162,7 +162,7 @@ export async function generateDtoWithRelations(
   // Check if the model has any Decimal fields
   const hasDecimalFields = model.fields.some(field => field.type === 'Decimal');
   if (hasDecimalFields) {
-    importManager.addImport('@prisma/client', 'Prisma');
+    importManager.addImport('../../prisma', 'Prisma');
   }
 
   // Set to track which relation types are used
