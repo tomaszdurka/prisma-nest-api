@@ -14,7 +14,7 @@ import {generateEnumFilters} from "./enum-filters-generator";
 generatorHandler({
   onManifest() {
     return {
-      version: '1.11.0',
+      version: '1.11.1',
       defaultOutput: 'src/generated', 
       prettyName: 'NestJS API Generator',
     };
