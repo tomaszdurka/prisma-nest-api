@@ -10,14 +10,22 @@ export async function generateModelIndexFile(model: EnhancedModel, outputDir: st
   const modelName = model.name;
   const indexFilePath = path.join(outputDir, 'dto', 'index.ts');
 
-  let content = `export * from './create-${toKebabCase(modelName)}.dto';\n`;
-  content += `export * from './update-${toKebabCase(modelName)}.dto';\n`;
-  content += `export * from './find-many-${toKebabCase(modelName)}.dto';\n`;
-  content += `export * from './flat-query-${toKebabCase(modelName)}.dto';\n`;
-  content += `export * from './${toKebabCase(modelName)}.dto';\n`;
-  content += `export * from './${toKebabCase(modelName)}-id.dto';\n`;
-  content += `export * from './${toKebabCase(modelName)}-list.dto';\n`;
+  // Check if index file already exists
+  try {
+    await fs.access(indexFilePath);
+    // File exists, don't overwrite it
+    return;
+  } catch (error) {
+    // File doesn't exist, create it
+    let content = `export * from './create-${toKebabCase(modelName)}.dto';\n`;
+    content += `export * from './update-${toKebabCase(modelName)}.dto';\n`;
+    content += `export * from './find-many-${toKebabCase(modelName)}.dto';\n`;
+    content += `export * from './flat-query-${toKebabCase(modelName)}.dto';\n`;
+    content += `export * from './${toKebabCase(modelName)}.dto';\n`;
+    content += `export * from './${toKebabCase(modelName)}-id.dto';\n`;
+    content += `export * from './${toKebabCase(modelName)}-list.dto';\n`;
 
-  await fs.mkdir(path.dirname(indexFilePath), { recursive: true });
-  await fs.writeFile(indexFilePath, content);
+    await fs.mkdir(path.dirname(indexFilePath), { recursive: true });
+    await fs.writeFile(indexFilePath, content);
+  }
 }
