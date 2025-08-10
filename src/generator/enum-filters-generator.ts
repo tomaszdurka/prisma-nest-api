@@ -50,7 +50,7 @@ async function generateEnumFilter(enumDef: DMMF.DatamodelEnum, outputDir: string
   const importManager = new ImportManager();
   importManager.addImport('@nestjs/swagger', ['ApiProperty']);
   importManager.addImport('class-validator', ['IsOptional', 'IsEnum']);
-  importManager.addImport('../../prisma', [enumDef.name]);
+  importManager.addImport('../prisma', [enumDef.name]);
 
   let content = importManager.generateImports();
   content += '\n';
