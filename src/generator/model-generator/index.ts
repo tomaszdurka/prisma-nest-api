@@ -20,7 +20,7 @@ import {toKebabCase} from "../utils/string-formatter";
  * Generate model DTOs for various operations (create, update, find, etc)
  */
 export async function generateModels(options: GenerateModelsOptions): Promise<void> {
-  const {models, outputDir, enums = [], prismaClientProvider = '@prisma/client', systemFields = []} = options;
+  const {models, outputDir, enums = [], systemFields = []} = options;
   const enhancedModels = preprocessModels(models);
 
   // Create base directories
@@ -35,10 +35,10 @@ export async function generateModels(options: GenerateModelsOptions): Promise<vo
     await fs.mkdir(modelDtoDir, {recursive: true});
 
     // Generate all DTOs for this model
-    await generateCreateDto(model, modelDtoDir, enums, prismaClientProvider, systemFields);
-    await generateUpdateDto(model, modelDtoDir, enums, prismaClientProvider, systemFields);
-    await generateDto(model, modelDtoDir, enums, prismaClientProvider);
-    await generateIdDto(model, modelDtoDir, enums, prismaClientProvider, systemFields);
+    await generateCreateDto(model, modelDtoDir, enums, systemFields);
+    await generateUpdateDto(model, modelDtoDir, enums, systemFields);
+    await generateDto(model, modelDtoDir, enums);
+    await generateIdDto(model, modelDtoDir, enums, systemFields);
     await generateFindManyDto(model, modelDtoDir);
     await generateFlatQueryDto(model, modelDtoDir);
     await generateFilterClass(model, modelDtoDir, systemFields);

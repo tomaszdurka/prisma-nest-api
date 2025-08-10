@@ -13,7 +13,6 @@ export async function generateIdDto(
   model: EnhancedModel,
   outputDir: string,
   enums: DMMF.DatamodelEnum[] = [],
-  prismaClientProvider: string,
   systemFields: string[] = []
 ): Promise<void> {
   const modelName = model.name;
@@ -102,8 +101,8 @@ export async function generateIdDto(
   importManager.addImport('class-validator', Array.from(usedValidators));
 
   // If we have enums, import them from the Prisma client
-  if (usedEnums.size > 0 && prismaClientProvider) {
-    importManager.addImport(prismaClientProvider, Array.from(usedEnums));
+  if (usedEnums.size > 0) {
+    importManager.addImport('../../prisma', Array.from(usedEnums));
   }
 
   // Generate content with imports

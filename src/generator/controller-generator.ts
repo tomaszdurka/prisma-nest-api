@@ -7,7 +7,6 @@ import {getPrimaryKeyFields} from "./model-generator/utils/helpers";
 interface GenerateControllersOptions {
   models: DMMF.Model[];
   outputDir: string;
-  prismaClientProvider?: string;
   systemFields?: string[];
 }
 

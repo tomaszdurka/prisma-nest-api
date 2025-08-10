@@ -18,7 +18,6 @@ export async function generateCreateDto(
   model: EnhancedModel,
   outputDir: string,
   enums: DMMF.DatamodelEnum[] = [],
-  prismaClientProvider: string,
   systemFields: string[] = []
 ): Promise<void> {
   const className = `Create${model.name}Dto`;
@@ -128,7 +127,7 @@ export async function generateCreateDto(
 
   // If we have enums, import them from the Prisma client
   if (usedEnums.size > 0) {
-    importManager.addImport(prismaClientProvider, Array.from(usedEnums));
+    importManager.addImport('../../prisma', Array.from(usedEnums));
   }
 
   // Import Prisma if we have decimal fields

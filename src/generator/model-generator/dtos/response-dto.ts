@@ -13,10 +13,9 @@ export async function generateDto(
   model: EnhancedModel,
   outputDir: string,
   enums: DMMF.DatamodelEnum[] = [],
-  prismaClientProvider: string
 ): Promise<void> {
   // Generate both standard response DTO and list response DTO
-  await generateModelDto(model, outputDir, enums, prismaClientProvider);
+  await generateModelDto(model, outputDir, enums);
   await generateListDto(model, outputDir);
 }
 
@@ -27,7 +26,6 @@ async function generateModelDto(
   model: EnhancedModel,
   outputDir: string,
   enums: DMMF.DatamodelEnum[] = [],
-  prismaClientProvider: string
 ): Promise<void> {
   const className = `${model.name}Dto`;
   const fileName = `${toKebabCase(model.name)}.dto.ts`;
@@ -79,7 +77,7 @@ async function generateModelDto(
 
   // If we have enums, import them from the Prisma client
   if (usedEnums.size > 0) {
-    importManager.addImport(prismaClientProvider, Array.from(usedEnums));
+    importManager.addImport('../../prisma', Array.from(usedEnums));
   }
 
   // Import Prisma if we have decimal fields

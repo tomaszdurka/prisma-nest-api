@@ -4,7 +4,6 @@ export interface GenerateModelsOptions {
   models: DMMF.Model[];
   outputDir: string;
   enums?: DMMF.DatamodelEnum[];
-  prismaClientProvider?: string;
   systemFields?: string[];
 }
 
