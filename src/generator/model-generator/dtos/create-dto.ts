@@ -52,7 +52,7 @@ export async function generateCreateDto(
     const isOptional = !field.isRequired || field.hasDefaultValue;
     const typeScriptType = getTypeScriptInputType(field, enums);
     if (typeScriptType.includes('Prisma')) {
-      importManager.addImport('../../prisma', ['Prisma'])
+      importManager.addImport('@prisma/client', ['Prisma'])
     }
 
     // Check if this is a read-only field but allowed in DTO
@@ -127,12 +127,12 @@ export async function generateCreateDto(
 
   // If we have enums, import them from the Prisma client
   if (usedEnums.size > 0) {
-    importManager.addImport('../../prisma', Array.from(usedEnums));
+    importManager.addImport('@prisma/client', Array.from(usedEnums));
   }
 
   // Import Prisma if we have decimal fields
   if (model.fields.some(field => field.type === 'Decimal')) {
-    importManager.addImport('../../prisma', 'Prisma');
+    importManager.addImport('@prisma/client', 'Prisma');
   }
 
   // Import class-validator decorators

@@ -31,7 +31,7 @@ export async function generateFlatQueryDto(
   
   // Import enum types from Prisma
   if (enumTypesToImport.size > 0) {
-    importManager.addImport('../../prisma', Array.from(enumTypesToImport));
+    importManager.addImport('@prisma/client', Array.from(enumTypesToImport));
   }
 
   let properties = '';

@@ -51,7 +51,7 @@ async function generatePrismaServiceFile(outputDir: string): Promise<void> {
   const filePath = path.join(outputDir, 'prisma', fileName);
 
   let content = `import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';\n`;
-  content += `import { PrismaClient } from './prisma';\n\n`;
+  content += `import { PrismaClient } from '@prisma/client';\n\n`;
 
   content += `@Injectable()\n`;
   content += `export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {\n`;

@@ -59,7 +59,7 @@ export async function generateIdDto(
   for (const field of primaryKeyFields) {
     const typeScriptType = getTypeScriptType(field, enums);
     if (typeScriptType.includes('Prisma')) {
-      importManager.addImport('../../prisma', ['Prisma'])
+      importManager.addImport('@prisma/client', ['Prisma'])
     }
 
     // Handle enum types
@@ -102,7 +102,7 @@ export async function generateIdDto(
 
   // If we have enums, import them from the Prisma client
   if (usedEnums.size > 0) {
-    importManager.addImport('../../prisma', Array.from(usedEnums));
+    importManager.addImport('@prisma/client', Array.from(usedEnums));
   }
 
   // Generate content with imports
