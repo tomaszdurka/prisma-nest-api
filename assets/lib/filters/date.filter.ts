@@ -1,30 +1,29 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDate, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BaseFilter } from './base.filter';
 
-export class DateFilter extends BaseFilter {
+export class DateFilter {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsDate()
   @Type(() => Date)
-  override equals?: Date;
+  equals?: Date;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsDate()
   @Type(() => Date)
-  override not?: Date;
+  not?: Date;
 
   @ApiProperty({ required: false, type: [Date] })
   @IsOptional()
   @Type(() => Date)
-  override in?: Date[];
+  in?: Date[];
 
   @ApiProperty({ required: false, type: [Date] })
   @IsOptional()
   @Type(() => Date)
-  override notIn?: Date[];
+  notIn?: Date[];
 
   @ApiProperty({ required: false })
   @IsOptional()

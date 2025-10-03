@@ -1,15 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsOptional } from 'class-validator';
-import { BaseFilter } from './base.filter';
 
-export class BooleanFilter extends BaseFilter {
+export class BooleanFilter {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
-  override equals?: boolean;
+  equals?: boolean;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsBoolean()
-  override not?: boolean;
+  not?: boolean;
 }

@@ -38,7 +38,7 @@ export async function generateFindManyDto(model: EnhancedModel, outputDir: strin
 
   // Flattened pagination parameters
   // Take parameter
-  content += `  @ApiPropertyOptional({ description: 'Number of records to take', default: 10 })\n`;
+  content += `  @ApiPropertyOptional({ description: 'Number of records to take', default: 10, type: 'integer' })\n`;
   content += `  @IsOptional()\n`;
   content += `  @IsInt()\n`;
   content += `  @Min(1)\n`;
@@ -46,7 +46,7 @@ export async function generateFindManyDto(model: EnhancedModel, outputDir: strin
   content += `  take = 10;\n\n`;
 
   // Skip parameter
-  content += `  @ApiPropertyOptional({ description: 'Number of records to skip', default: 0 })\n`;
+  content += `  @ApiPropertyOptional({ description: 'Number of records to skip', default: 0, type: 'integer' })\n`;
   content += `  @IsOptional()\n`;
   content += `  @IsInt()\n`;
   content += `  @Min(0)\n`;

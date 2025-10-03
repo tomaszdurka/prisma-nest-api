@@ -94,12 +94,12 @@ export async function generateFilterClass(model: EnhancedModel, outputDir: strin
   let whereFilterClass = `export class ${whereClassName} extends ${baseClassName} {\n`;
 
   // Add AND, OR, NOT operators
-  whereFilterClass += `  @ApiProperty({ required: false, type: () => [${whereClassName}], isArray: true })\n`;
+  whereFilterClass += `  @ApiProperty({ required: false, type: () => [${whereClassName}] })\n`;
   whereFilterClass += `  @IsOptional()\n`;
   whereFilterClass += `  @Type(() => ${whereClassName})\n`;
   whereFilterClass += `  AND?: ${whereClassName}[];\n\n`;
 
-  whereFilterClass += `  @ApiProperty({ required: false, type: () => [${whereClassName}], isArray: true })\n`;
+  whereFilterClass += `  @ApiProperty({ required: false, type: () => [${whereClassName}] })\n`;
   whereFilterClass += `  @IsOptional()\n`;
   whereFilterClass += `  @Type(() => ${whereClassName})\n`;
   whereFilterClass += `  OR?: ${whereClassName}[];\n\n`;
