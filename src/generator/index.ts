@@ -15,13 +15,14 @@ generatorHandler({
   onManifest() {
     return {
       version: '1.11.3',
-      defaultOutput: 'src/generated', 
+      defaultOutput: 'src/generated',
       prettyName: 'NestJS API Generator',
     };
   },
   async onGenerate(options: GeneratorOptions) {
     // Get the output directory, defaulting to src/generated if not specified
     const outputDir = options.generator.output?.value || 'src/generated';
+    const generatorName = options.generator.name;
 
     // Get systemFields option, defaulting to empty array if not specified
     const systemFields = options.generator.config.systemFields
@@ -37,24 +38,99 @@ generatorHandler({
           : [options.generator.config.schemas])
       : undefined;
 
+    // Get models option, defaulting to undefined if not specified
+    const allowedModels = options.generator.config.models
+      ? (Array.isArray(options.generator.config.models)
+          ? options.generator.config.models
+          : [options.generator.config.models])
+      : undefined;
+
+    // Get ignoreSchemas option, defaulting to undefined if not specified
+    const ignoredSchemas = options.generator.config.ignoreSchemas
+      ? (Array.isArray(options.generator.config.ignoreSchemas)
+          ? options.generator.config.ignoreSchemas
+          : [options.generator.config.ignoreSchemas])
+      : undefined;
+
+    // Get ignoreModels option, defaulting to undefined if not specified
+    const ignoredModels = options.generator.config.ignoreModels
+      ? (Array.isArray(options.generator.config.ignoreModels)
+          ? options.generator.config.ignoreModels
+          : [options.generator.config.ignoreModels])
+      : undefined;
+
     // Use type assertion to handle the readonly types
     let models = options.dmmf.datamodel.models as unknown as DMMF.Model[];
+    const totalModels = models.length;
 
-    // Filter models by schema if schemas config is provided
-    if (allowedSchemas && allowedSchemas.length > 0) {
-      models = models.filter(model => {
-        const modelSchema = model.schema || 'public'; // Default to 'public' if no schema is specified
-        return allowedSchemas.includes(modelSchema);
-      });
-      console.log(`Filtering models by schemas: ${allowedSchemas.join(', ')}`);
-      console.log(`${models.length} models match the specified schemas`);
+    console.log(`\nGenerating NestJS API for '${generatorName}'`);
+
+    // Log active filters
+    if (allowedSchemas || ignoredSchemas || allowedModels || ignoredModels) {
+      console.log(`\nActive filters for '${generatorName}':`);
     }
+    if (allowedSchemas) {
+      console.log(`- Include schemas: ${allowedSchemas.join(', ')}`);
+    }
+    if (ignoredSchemas) {
+      console.log(`- Ignore schemas: ${ignoredSchemas.join(', ')}`);
+    }
+    if (allowedModels) {
+      console.log(`- Include models: ${allowedModels.join(', ')}`);
+    }
+    if (ignoredModels) {
+      console.log(`- Ignore models: ${ignoredModels.join(', ')}`);
+    }
+    if (!allowedSchemas && !ignoredSchemas && !allowedModels && !ignoredModels) {
+      console.log(`No filters (generating all models)`);
+    }
+
+    // Apply all filters in a single pass
+    models = models.filter(model => {
+      const modelSchema = model.schema;
+      const modelName = model.name;
+
+      // Check schema inclusion filter
+      if (allowedSchemas) {
+        if (!modelSchema || !allowedSchemas.includes(modelSchema)) {
+          return false;
+        }
+      }
+
+      // Check schema exclusion filter
+      if (ignoredSchemas) {
+        if (modelSchema && ignoredSchemas.includes(modelSchema)) {
+          return false;
+        }
+      }
+
+      // Check model inclusion filter
+      if (allowedModels) {
+        if (!allowedModels.includes(modelName)) {
+          return false;
+        }
+      }
+
+      // Check model exclusion filter
+      if (ignoredModels) {
+        if (ignoredModels.includes(modelName)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
 
     const enums = options.dmmf.datamodel.enums as unknown as DMMF.DatamodelEnum[];
 
     // Note: Enums are not filtered by schema as they may be used by models in allowed schemas
 
-    console.log(`Generating NestJS API in: ${outputDir}`);
+
+
+    console.log(`Total models in schema: ${totalModels}`);
+    console.log(`- Models to generate: ${models.length}`);
+    console.log(`- Models skipped: ${totalModels - models.length}`);
+
 
     // Copy utility files from the library to the output directory
     // This ensures the generated code doesn't have runtime dependencies on the library
@@ -105,6 +181,6 @@ generatorHandler({
     });
 
 
-    console.log('✅ NestJS API models and controllers generated successfully!');
+    console.log(`✅ Generated successfully in '${outputDir}'}`);
   },
 });

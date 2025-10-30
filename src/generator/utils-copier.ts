@@ -7,8 +7,6 @@ import * as fs from 'fs/promises';
  */
 export async function copyUtilities(outputDir: string): Promise<void> {
   try {
-    console.log('Copying utility files to generated output directory...');
-    
     // Define source and destination directories
     // Use assets directory for source files to ensure TypeScript source files are copied (not compiled JS)
     const sourceLibDir = path.join(__dirname, '..', '..', 'assets', 'lib');
@@ -17,7 +15,6 @@ export async function copyUtilities(outputDir: string): Promise<void> {
     // Use fs.cp to recursively copy the entire directory
     await fs.cp(sourceLibDir, targetLibDir, { recursive: true });
     
-    console.log(' Utility files copied successfully!');
   } catch (error) {
     console.error('Error copying utility files:', error);
   }

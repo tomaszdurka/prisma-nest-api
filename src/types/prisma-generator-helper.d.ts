@@ -8,5 +8,14 @@ declare module '@prisma/generator-helper' {
     schemas?: {
       value: string | string[];
     };
+    models?: {
+      value: string | string[];
+    };
+    ignoreSchemas?: {
+      value: string | string[];
+    };
+    ignoreModels?: {
+      value: string | string[];
+    };
   }
 }
