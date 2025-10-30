@@ -30,9 +30,29 @@ generatorHandler({
           : [options.generator.config.systemFields])
       : [];
 
+    // Get schemas option, defaulting to undefined if not specified
+    const allowedSchemas = options.generator.config.schemas
+      ? (Array.isArray(options.generator.config.schemas)
+          ? options.generator.config.schemas
+          : [options.generator.config.schemas])
+      : undefined;
+
     // Use type assertion to handle the readonly types
-    const models = options.dmmf.datamodel.models as unknown as DMMF.Model[];
+    let models = options.dmmf.datamodel.models as unknown as DMMF.Model[];
+
+    // Filter models by schema if schemas config is provided
+    if (allowedSchemas && allowedSchemas.length > 0) {
+      models = models.filter(model => {
+        const modelSchema = model.schema || 'public'; // Default to 'public' if no schema is specified
+        return allowedSchemas.includes(modelSchema);
+      });
+      console.log(`Filtering models by schemas: ${allowedSchemas.join(', ')}`);
+      console.log(`${models.length} models match the specified schemas`);
+    }
+
     const enums = options.dmmf.datamodel.enums as unknown as DMMF.DatamodelEnum[];
+
+    // Note: Enums are not filtered by schema as they may be used by models in allowed schemas
 
     console.log(`Generating NestJS API in: ${outputDir}`);
 

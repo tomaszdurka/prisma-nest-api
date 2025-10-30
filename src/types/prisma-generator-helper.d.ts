@@ -5,5 +5,8 @@ declare module '@prisma/generator-helper' {
     systemFields?: {
       value: string | string[];
     };
+    schemas?: {
+      value: string | string[];
+    };
   }
 }
