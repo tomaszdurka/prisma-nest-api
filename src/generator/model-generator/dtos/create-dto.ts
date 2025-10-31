@@ -6,7 +6,11 @@ import {
   getTypeScriptInputType,
   getValidatorForField,
   isEnumField,
-  shouldIncludeFieldInDto
+  shouldIncludeFieldInDto,
+  isJsonField,
+  getJsonFieldDtoName,
+  getApiPropertyConfigName,
+  fieldNameToKebabCase
 } from "../utils/helpers";
 import * as fs from 'fs/promises';
 import { toKebabCase } from '../../utils/string-formatter';
@@ -34,6 +38,9 @@ export async function generateCreateDto(
   const usedValidators = new Set<string>();
   usedValidators.add('IsOptional'); // Always used for optional fields
   usedValidators.add('IsNotEmpty'); // Always used for required fields
+
+  // Track custom DTO types for importing
+  const customDtoImports = new Map<string, string>(); // dtoType -> import path
 
   let properties = '';
 
@@ -63,6 +70,28 @@ export async function generateCreateDto(
       !model._relationFields.get(field.name)!.isReadOnly
     );
 
+    // Check if this field is a JSON type
+    const isJson = isJsonField(field);
+    let jsonDtoType: string | undefined;
+
+    if (isJson) {
+      jsonDtoType = getJsonFieldDtoName(field.name);
+      const dtoFileName = fieldNameToKebabCase(field.name);
+      const importPath = `./${dtoFileName}.dto`;
+      const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
+
+      // Track the JSON DTO import
+      if (!customDtoImports.has(jsonDtoType)) {
+        customDtoImports.set(jsonDtoType, importPath);
+      }
+
+      // Import the API property config and DTO type
+      importManager.addImport(importPath, [jsonDtoType, apiPropertyConfig]);
+
+      // Use IsObject validator for JSON DTO types
+      usedValidators.add('IsObject');
+    }
+
     // Import enum if needed
     if (isEnumField(field, enums)) {
       usedEnums.add(field.type);
@@ -74,6 +103,10 @@ export async function generateCreateDto(
       // Add enum values to API property if it's an enum
       if (isEnumField(field, enums)) {
         properties += `  @ApiPropertyOptional({ enum: ${field.type}, enumName: '${field.type}' })\n`;
+      } else if (jsonDtoType) {
+        // Use JSON DTO API property config
+        const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
+        properties += `  @ApiPropertyOptional(${apiPropertyConfig})\n`;
       } else {
         properties += `  @ApiPropertyOptional()\n`;
       }
@@ -81,7 +114,7 @@ export async function generateCreateDto(
       properties += `  @IsOptional()\n`;
 
       // Add type-specific validator if available
-      const validator = getValidatorForField(field);
+      const validator = jsonDtoType ? 'IsObject' : getValidatorForField(field);
       if (validator) {
         usedValidators.add(validator);
         properties += `  @${validator}()\n`;
@@ -91,6 +124,10 @@ export async function generateCreateDto(
 
       if (isEnumField(field, enums)) {
         properties += `  @ApiProperty({ enum: ${field.type}, enumName: '${field.type}' })\n`;
+      } else if (jsonDtoType) {
+        // Use JSON DTO API property config
+        const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
+        properties += `  @ApiProperty(${apiPropertyConfig})\n`;
       } else {
         properties += `  @ApiProperty()\n`;
       }
@@ -98,7 +135,7 @@ export async function generateCreateDto(
       properties += `  @IsNotEmpty()\n`;
 
       // Add type-specific validator if available
-      const validator = getValidatorForField(field);
+      const validator = jsonDtoType ? 'IsObject' : getValidatorForField(field);
       if (validator) {
         usedValidators.add(validator);
         properties += `  @${validator}()\n`;

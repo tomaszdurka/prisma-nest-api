@@ -3,7 +3,14 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import { EnhancedModel } from '../utils/types';
 import { ImportManager } from '../utils/import-manager';
-import { getTypeScriptType, isEnumField } from '../utils/helpers';
+import {
+  getTypeScriptType,
+  isEnumField,
+  isJsonField,
+  getJsonFieldDtoName,
+  getApiPropertyConfigName,
+  fieldNameToKebabCase
+} from '../utils/helpers';
 import { toKebabCase } from '../../utils/string-formatter';
 
 /**
@@ -38,6 +45,9 @@ async function generateModelDto(
   // Set to track which enums are actually used
   const usedEnums = new Set<string>();
 
+  // Track custom DTO types for importing
+  const customDtoImports = new Map<string, string>(); // dtoType -> import path
+
   let properties = '';
 
   // Process all fields (including all scalar fields regardless of read-only status, but excluding relations)
@@ -57,8 +67,28 @@ async function generateModelDto(
       model._relationFields &&
       model._relationFields.get(field.name);
 
-    // Import enum if needed
-    if (isEnumField(field, enums)) {
+    // Check if this field is a JSON type
+    const isJson = isJsonField(field);
+    let jsonDtoType: string | undefined;
+
+    if (isJson) {
+      jsonDtoType = getJsonFieldDtoName(field.name);
+      const dtoFileName = fieldNameToKebabCase(field.name);
+      const importPath = `./${dtoFileName}.dto`;
+      const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
+
+      // Track the JSON DTO import
+      if (!customDtoImports.has(jsonDtoType)) {
+        customDtoImports.set(jsonDtoType, importPath);
+      }
+
+      // Import the API property config and DTO type
+      importManager.addImport(importPath, [jsonDtoType, apiPropertyConfig]);
+
+      // Use JSON DTO API property config
+      properties += `  @ApiProperty(${apiPropertyConfig})\n`;
+    } else if (isEnumField(field, enums)) {
+      // Import enum if needed
       usedEnums.add(field.type);
 
       // Add enum values to API property

@@ -11,6 +11,7 @@ import {generateIdDto} from './dtos/id-dto';
 import {generateFindManyDto} from './dtos/find-many-dto';
 import {generateFlatQueryDto} from './dtos/flat-query-dto';
 import {generateModelIndexFile} from './dtos/index-generator';
+import {generateJsonFieldDtos} from './dtos/json-field-dto';
 
 // Import the filter generator
 import {generateFilterClass} from './filters/filter-generator';
@@ -33,6 +34,9 @@ export async function generateModels(options: GenerateModelsOptions): Promise<vo
     // Create model-specific directory for DTOs
     const modelDtoDir = path.join(outputDir, toKebabCase(model.name));
     await fs.mkdir(modelDtoDir, {recursive: true});
+
+    // Generate JSON field DTOs first (these won't be overwritten if they exist)
+    await generateJsonFieldDtos(model, modelDtoDir);
 
     // Generate all DTOs for this model
     await generateCreateDto(model, modelDtoDir, enums, systemFields);

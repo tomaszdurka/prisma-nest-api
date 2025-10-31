@@ -89,6 +89,11 @@ export function isEnumField(field: DMMF.Field, enums: DMMF.DatamodelEnum[]): boo
  * Get TypeScript type for a field, considering enum types
  */
 export function getTypeScriptType(field: DMMF.Field, enums: DMMF.DatamodelEnum[] = []): string {
+  // Check if this is a JSON field - use custom DTO
+  if (isJsonField(field)) {
+    return getJsonFieldDtoName(field.name);
+  }
+
   // Check if this is an enum type
   if (isEnumField(field, enums)) {
     return field.type;
@@ -108,6 +113,12 @@ export function getTypeScriptType(field: DMMF.Field, enums: DMMF.DatamodelEnum[]
 }
 
 export function getTypeScriptInputType(field: DMMF.Field, enums: DMMF.DatamodelEnum[] = []): string {
+  // Check if this is a JSON field - use custom DTO with Prisma.InputJsonValue intersection
+  if (isJsonField(field)) {
+    const dtoName = getJsonFieldDtoName(field.name);
+    return `${dtoName} & Prisma.InputJsonValue`;
+  }
+
   return getTypeScriptType(field, enums).replace(/Prisma\.JsonValue/g, 'Prisma.InputJsonValue')
 }
 
@@ -228,4 +239,37 @@ export function getTypeScriptTypeForOperator(fieldType: string): string {
     default:
       return 'string';
   }
+}
+
+/**
+ * Check if a field is a JSON type
+ */
+export function isJsonField(field: DMMF.Field): boolean {
+  return field.type === 'Json';
+}
+
+/**
+ * Get the DTO type name for a JSON field
+ * Example: security -> SecurityDto
+ */
+export function getJsonFieldDtoName(fieldName: string): string {
+  // Convert to PascalCase and add Dto suffix
+  const pascalCase = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+  return `${pascalCase}Dto`;
+}
+
+/**
+ * Get the ApiProperty configuration constant name for a JSON field DTO
+ * Example: SecurityDto -> SecurityDtoApiProperty
+ */
+export function getApiPropertyConfigName(dtoTypeName: string): string {
+  return `${dtoTypeName}ApiProperty`;
+}
+
+/**
+ * Convert a field name to kebab-case for file naming
+ * Example: security -> security, apiConfig -> api-config
+ */
+export function fieldNameToKebabCase(fieldName: string): string {
+  return fieldName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }

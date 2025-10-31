@@ -7,7 +7,11 @@ import {
   getValidatorForField,
   shouldIncludeFieldInDto,
   isEnumField,
-  getTypeScriptInputType
+  getTypeScriptInputType,
+  isJsonField,
+  getJsonFieldDtoName,
+  getApiPropertyConfigName,
+  fieldNameToKebabCase
 } from '../utils/helpers';
 import { toKebabCase } from '../../utils/string-formatter';
 
@@ -33,6 +37,9 @@ export async function generateUpdateDto(
   // Set to track which validators are actually used
   const usedValidators = new Set<string>();
   usedValidators.add('IsOptional'); // Always used for update DTOs
+
+  // Track custom DTO types for importing
+  const customDtoImports = new Map<string, string>(); // dtoType -> import path
 
   let properties = '';
 
@@ -61,12 +68,39 @@ export async function generateUpdateDto(
       !model._relationFields.get(field.name)!.isReadOnly
     );
 
+    // Check if this field is a JSON type
+    const isJson = isJsonField(field);
+    let jsonDtoType: string | undefined;
+
+    if (isJson) {
+      jsonDtoType = getJsonFieldDtoName(field.name);
+      const dtoFileName = fieldNameToKebabCase(field.name);
+      const importPath = `./${dtoFileName}.dto`;
+      const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
+
+      // Track the JSON DTO import
+      if (!customDtoImports.has(jsonDtoType)) {
+        customDtoImports.set(jsonDtoType, importPath);
+      }
+
+      // Import the API property config and DTO type
+      importManager.addImport(importPath, [jsonDtoType, apiPropertyConfig]);
+
+      // Use IsObject validator for JSON DTO types
+      usedValidators.add('IsObject');
+    }
+
     // Import enum if needed
     if (isEnumField(field, enums)) {
       usedEnums.add(field.type);
 
       importManager.addImport('@nestjs/swagger', 'ApiPropertyOptional');
       properties += `  @ApiPropertyOptional({ enum: ${field.type}, enumName: '${field.type}' })\n`;
+    } else if (jsonDtoType) {
+      // Use JSON DTO API property config
+      const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
+      importManager.addImport('@nestjs/swagger', 'ApiPropertyOptional');
+      properties += `  @ApiPropertyOptional(${apiPropertyConfig})\n`;
     } else {
       importManager.addImport('@nestjs/swagger', 'ApiPropertyOptional');
       properties += `  @ApiPropertyOptional()\n`;
@@ -76,7 +110,7 @@ export async function generateUpdateDto(
     properties += `  @IsOptional()\n`;
 
     // Add type-specific validator if available
-    const validator = getValidatorForField(field);
+    const validator = jsonDtoType ? 'IsObject' : getValidatorForField(field);
     if (validator) {
       usedValidators.add(validator);
       properties += `  @${validator}()\n`;
