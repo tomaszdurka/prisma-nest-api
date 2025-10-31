@@ -87,9 +87,6 @@ export async function generateCreateDto(
 
       // Import the API property config and DTO type
       importManager.addImport(importPath, [jsonDtoType, apiPropertyConfig]);
-
-      // Use IsObject validator for JSON DTO types
-      usedValidators.add('IsObject');
     }
 
     // Import enum if needed
