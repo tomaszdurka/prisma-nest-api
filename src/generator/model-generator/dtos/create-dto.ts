@@ -9,7 +9,7 @@ import {
   shouldIncludeFieldInDto,
   isJsonField,
   getJsonFieldDtoName,
-  getApiPropertyConfigName,
+  getJsonFieldDecoratorName,
   fieldNameToKebabCase
 } from "../utils/helpers";
 import * as fs from 'fs/promises';
@@ -70,40 +70,35 @@ export async function generateCreateDto(
       !model._relationFields.get(field.name)!.isReadOnly
     );
 
-    // Check if this field is a JSON type
-    const isJson = isJsonField(field);
-    let jsonDtoType: string | undefined;
-
-    if (isJson) {
-      jsonDtoType = getJsonFieldDtoName(field.name);
-      const dtoFileName = fieldNameToKebabCase(field.name);
-      const importPath = `./${dtoFileName}.dto`;
-      const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
-
-      // Track the JSON DTO import
-      if (!customDtoImports.has(jsonDtoType)) {
-        customDtoImports.set(jsonDtoType, importPath);
-      }
-
-      // Import the API property config and DTO type
-      importManager.addImport(importPath, [jsonDtoType, apiPropertyConfig]);
-    }
 
     // Import enum if needed
     if (isEnumField(field, enums)) {
       usedEnums.add(field.type);
     }
 
-    if (isOptional) {
+    // Check if this field is a JSON type
+    const isJson = isJsonField(field);
+
+    if (isJson) {
+      const jsonDtoType = getJsonFieldDtoName(field.name);
+      const jsonDecoratorName = getJsonFieldDecoratorName(jsonDtoType);
+      const dtoFileName = fieldNameToKebabCase(field.name);
+      const importPath = `./${dtoFileName}.dto`;
+
+      // Track the JSON DTO import
+      if (!customDtoImports.has(jsonDtoType)) {
+        customDtoImports.set(jsonDtoType, importPath);
+      }
+
+      // Import the decorator function and DTO type
+      importManager.addImport(importPath, [jsonDtoType, jsonDecoratorName]);
+      properties += `  @${jsonDecoratorName}(${isOptional ? `{ optional: true }` : ''})\n`;
+    } else if (isOptional) {
       importManager.addImport('@nestjs/swagger', 'ApiPropertyOptional');
 
       // Add enum values to API property if it's an enum
       if (isEnumField(field, enums)) {
         properties += `  @ApiPropertyOptional({ enum: ${field.type}, enumName: '${field.type}' })\n`;
-      } else if (jsonDtoType) {
-        // Use JSON DTO API property config
-        const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
-        properties += `  @ApiPropertyOptional(${apiPropertyConfig})\n`;
       } else {
         properties += `  @ApiPropertyOptional()\n`;
       }
@@ -111,7 +106,7 @@ export async function generateCreateDto(
       properties += `  @IsOptional()\n`;
 
       // Add type-specific validator if available
-      const validator = jsonDtoType ? 'IsObject' : getValidatorForField(field);
+      const validator = getValidatorForField(field);
       if (validator) {
         usedValidators.add(validator);
         properties += `  @${validator}()\n`;
@@ -121,10 +116,6 @@ export async function generateCreateDto(
 
       if (isEnumField(field, enums)) {
         properties += `  @ApiProperty({ enum: ${field.type}, enumName: '${field.type}' })\n`;
-      } else if (jsonDtoType) {
-        // Use JSON DTO API property config
-        const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
-        properties += `  @ApiProperty(${apiPropertyConfig})\n`;
       } else {
         properties += `  @ApiProperty()\n`;
       }
@@ -132,7 +123,7 @@ export async function generateCreateDto(
       properties += `  @IsNotEmpty()\n`;
 
       // Add type-specific validator if available
-      const validator = jsonDtoType ? 'IsObject' : getValidatorForField(field);
+      const validator = getValidatorForField(field);
       if (validator) {
         usedValidators.add(validator);
         properties += `  @${validator}()\n`;

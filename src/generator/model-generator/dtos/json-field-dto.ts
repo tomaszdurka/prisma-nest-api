@@ -5,7 +5,6 @@ import { EnhancedModel } from '../utils/types';
 import {
   isJsonField,
   getJsonFieldDtoName,
-  getApiPropertyConfigName,
   fieldNameToKebabCase
 } from '../utils/helpers';
 import { toKebabCase } from '../../utils/string-formatter';
@@ -50,11 +49,13 @@ async function generateJsonFieldDto(
     // File doesn't exist, create it
   }
 
-  const apiPropertyConfigName = getApiPropertyConfigName(dtoClassName);
+  const decoratorName = `${dtoClassName}Property`;
 
   // Generate the DTO file content
-  const content = `import { ApiPropertyOptions } from '@nestjs/swagger/dist/decorators/api-property.decorator';
-import { ApiProperty } from '@nestjs/swagger';
+  const content = `import { applyDecorators } from '@nestjs/common';
+import { ApiProperty, ApiPropertyOptional, ApiPropertyOptions } from '@nestjs/swagger';
+import { IsObject, IsOptional, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
 
 /**
  * DTO for ${field.name} JSON field in ${model.name}
@@ -71,13 +72,34 @@ import { ApiProperty } from '@nestjs/swagger';
  *   anotherField?: number;
  * }
  */
-export class ${dtoClassName} {
-  // Add your custom fields here
+export type ${dtoClassName} = {
 }
 
-export const ${apiPropertyConfigName}: ApiPropertyOptions = {
-  type: ${dtoClassName},
+export const ${dtoClassName}ApiPropertyOptions: ApiPropertyOptions = {
 };
+
+/**
+ * Decorator for ${field.name} JSON field
+ * Applies all necessary decorators for validation and documentation
+ *
+ * @param options - Configuration options
+ * @param options.optional - Whether the field is optional (default: false)
+ */
+export function ${decoratorName}(options: { optional?: boolean } = {}) {
+  const { optional = false } = options;
+
+  if (optional) {
+    return applyDecorators(
+      ApiPropertyOptional(${dtoClassName}ApiPropertyOptions),
+      IsOptional(),
+    );
+  }
+
+  return applyDecorators(
+    ApiProperty(${dtoClassName}ApiPropertyOptions),
+    IsNotEmpty(),
+  );
+}
 `;
 
   await fs.mkdir(path.dirname(filePath), { recursive: true });

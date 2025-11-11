@@ -8,7 +8,7 @@ import {
   isEnumField,
   isJsonField,
   getJsonFieldDtoName,
-  getApiPropertyConfigName,
+  getJsonFieldDecoratorName,
   fieldNameToKebabCase
 } from '../utils/helpers';
 import { toKebabCase } from '../../utils/string-formatter';
@@ -67,30 +67,31 @@ async function generateModelDto(
       model._relationFields &&
       model._relationFields.get(field.name);
 
+
+    // Import enum if needed
+    if (isEnumField(field, enums)) {
+      usedEnums.add(field.type);
+    }
+
     // Check if this field is a JSON type
     const isJson = isJsonField(field);
-    let jsonDtoType: string | undefined;
 
     if (isJson) {
-      jsonDtoType = getJsonFieldDtoName(field.name);
+      const jsonDtoType = getJsonFieldDtoName(field.name);
+      const jsonDecoratorName = getJsonFieldDecoratorName(jsonDtoType);
       const dtoFileName = fieldNameToKebabCase(field.name);
       const importPath = `./${dtoFileName}.dto`;
-      const apiPropertyConfig = getApiPropertyConfigName(jsonDtoType);
 
       // Track the JSON DTO import
       if (!customDtoImports.has(jsonDtoType)) {
         customDtoImports.set(jsonDtoType, importPath);
       }
 
-      // Import the API property config and DTO type
-      importManager.addImport(importPath, [jsonDtoType, apiPropertyConfig]);
-
-      // Use JSON DTO API property config
-      properties += `  @ApiProperty(${apiPropertyConfig})\n`;
+      // Import the decorator function and DTO type
+      importManager.addImport(importPath, [jsonDtoType, jsonDecoratorName]);
+      // Use the custom decorator for JSON fields
+      properties += `  @${jsonDecoratorName}()\n`;
     } else if (isEnumField(field, enums)) {
-      // Import enum if needed
-      usedEnums.add(field.type);
-
       // Add enum values to API property
       properties += `  @ApiProperty({ enum: ${field.type}, enumName: '${field.type}' })\n`;
     } else {

@@ -267,6 +267,14 @@ export function getApiPropertyConfigName(dtoTypeName: string): string {
 }
 
 /**
+ * Get the decorator function name for a JSON field DTO
+ * Example: SecurityDto -> SecurityDtoProperty
+ */
+export function getJsonFieldDecoratorName(dtoTypeName: string): string {
+  return `${dtoTypeName}Property`;
+}
+
+/**
  * Convert a field name to kebab-case for file naming
  * Example: security -> security, apiConfig -> api-config
  */
